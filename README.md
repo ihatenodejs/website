@@ -11,11 +11,15 @@ The latest version of my personal website.
 
 ## Environment Variables
 
-| Variable                         | Required | Scope  | Description                                             |
-| -------------------------------- | -------- | ------ | ------------------------------------------------------- |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Yes      | Client | Cloudflare Turnstile site key used to render the widget |
-| `TURNSTILE_SECRET_KEY`           | Yes      | Server | Cloudflare Turnstile secret key used for token verify   |
-| `CONTACT_EMAIL`                  | Yes      | Server | Email returned after successful verification            |
+| Variable                         | Required | Scope  | Description                                                                     |
+| -------------------------------- | -------- | ------ | ------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Yes      | Client | Cloudflare Turnstile site key used to render the widget                         |
+| `TURNSTILE_SECRET_KEY`           | Yes      | Server | Cloudflare Turnstile secret key used to verify tokens                           |
+| `CONTACT_EMAIL`                  | Yes      | Server | Email returned by `/api/contact/reveal` after successful Turnstile verification |
+| `VALKEY_URL`                     | No       | Server | Valkey/Redis connection URL (defaults to `redis://localhost:6379`)              |
+| `GITHUB_PAT`                     | No       | Server | GitHub Personal Access Token for GitHub stats widget API calls                  |
+| `WIKIPEDIA_USERNAME`             | No       | Server | Wikipedia username used for edit count widget (defaults to `OnlyNano`)          |
+| `LISTENBRAINZ_USERNAME`          | No       | Server | ListenBrainz username used for listen count widget (defaults to `p0ntus`)       |
 
 ## Version Lineage
 
