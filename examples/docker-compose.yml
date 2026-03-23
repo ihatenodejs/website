@@ -1,0 +1,25 @@
+services:
+  valkey:
+    image: valkey/valkey:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./valkey:/data
+    restart: always
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
+      - CONTACT_EMAIL=${CONTACT_EMAIL}
+      - VALKEY_URL=redis://valkey:6379
+      - GITHUB_PAT=${GITHUB_PAT}
+      - WIKIPEDIA_USERNAME=${WIKIPEDIA_USERNAME}
+      - LISTENBRAINZ_USERNAME=${LISTENBRAINZ_USERNAME}
+    depends_on:
+      - valkey
+    restart: always
