@@ -1,5 +1,5 @@
 import { getListenBrainzStats } from "@/lib/listenbrainz";
-import { TbMusic } from "react-icons/tb";
+import { TbMusic, TbLoader } from "react-icons/tb";
 import { Suspense } from "react";
 
 export default function ListenBrainzWidget() {
@@ -10,7 +10,12 @@ export default function ListenBrainzWidget() {
         <h3 className="font-bold text-lg leading-none">Music</h3>
       </div>
       <Suspense
-        fallback={<div className="text-sm text-gray-500">Loading stats...</div>}
+        fallback={
+          <div className="text-sm text-gray-500">
+            <TbLoader className="animate-spin" />
+            Loading stats...
+          </div>
+        }
       >
         <ListenBrainzFetcher />
       </Suspense>

@@ -1,5 +1,6 @@
 import { getGithubStats } from "@/lib/github";
 import { SiGithub } from "react-icons/si";
+import { TbLoader } from "react-icons/tb";
 import { Suspense } from "react";
 
 export default function GithubWidget() {
@@ -10,7 +11,12 @@ export default function GithubWidget() {
         <h3 className="font-bold text-lg leading-none">GitHub</h3>
       </div>
       <Suspense
-        fallback={<div className="text-sm text-gray-500">Loading stats...</div>}
+        fallback={
+          <div className="text-sm text-gray-500">
+            <TbLoader className="animate-spin" />
+            Loading stats...
+          </div>
+        }
       >
         <GithubStatsFetcher />
       </Suspense>

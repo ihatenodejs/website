@@ -1,5 +1,6 @@
 import { getWikipediaStats } from "@/lib/wikipedia";
 import { SiWikipedia } from "react-icons/si";
+import { TbLoader } from "react-icons/tb";
 import { Suspense } from "react";
 
 export default function WikipediaWidget() {
@@ -10,7 +11,12 @@ export default function WikipediaWidget() {
         <h3 className="font-bold text-lg leading-none">Wikipedia</h3>
       </div>
       <Suspense
-        fallback={<div className="text-sm text-gray-500">Loading stats...</div>}
+        fallback={
+          <div className="text-sm text-gray-500">
+            <TbLoader className="animate-spin" />
+            Loading stats...
+          </div>
+        }
       >
         <WikipediaStatsFetcher />
       </Suspense>
