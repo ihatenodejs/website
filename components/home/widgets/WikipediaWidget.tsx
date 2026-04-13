@@ -12,7 +12,7 @@ export default function WikipediaWidget() {
       </div>
       <Suspense
         fallback={
-          <div className="text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             <TbLoader className="animate-spin" />
             Loading stats...
           </div>

@@ -6,6 +6,13 @@ export interface WikipediaStats {
   lastSynced: number;
 }
 
+const CACHE_KEY = "wikipedia:stats";
+const ERROR_CACHE_KEY = "wikipedia:stats:error";
+const CACHE_TTL = 3600;
+const ERROR_TTL = 300;
+
+let pendingFetch: Promise<WikipediaStats> | null = null;
+
 function calculateTimeSince(dateString: string): string {
   const regDate = new Date(dateString);
   const now = new Date();
@@ -25,40 +32,81 @@ function calculateTimeSince(dateString: string): string {
   return parts.length > 0 ? parts.join(", ") : "Just joined";
 }
 
-async function fetchWikipediaStats(): Promise<WikipediaStats> {
+async function getCachedError(): Promise<boolean> {
+  try {
+    const cached = await redis.get(ERROR_CACHE_KEY);
+    return cached !== null;
+  } catch {
+    return false;
+  }
+}
+
+async function setErrorCache(): Promise<void> {
+  try {
+    await redis.set(ERROR_CACHE_KEY, "1", "EX", ERROR_TTL);
+  } catch (err) {
+    console.error("Valkey error cache SET error:", err);
+  }
+}
+
+async function getStaleCache(): Promise<WikipediaStats | null> {
+  try {
+    const cached = await redis.get(CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      return { ...parsed, lastSynced: parsed.lastSynced || Date.now() };
+    }
+  } catch (err) {
+    console.error("Valkey stale cache GET error:", err);
+  }
+  return null;
+}
+
+async function doFetch(): Promise<WikipediaStats> {
   const username = process.env.WIKIPEDIA_USERNAME || "OnlyNano";
   const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&list=users&ususers=${encodeURIComponent(username)}&usprop=editcount|registration`;
 
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Failed to fetch Wikipedia stats");
-    const data = await res.json();
-
-    const user = data?.query?.users?.[0];
-    if (!user || user.missing !== undefined) {
-      throw new Error(`User ${username} not found`);
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => "");
+    let detail = "";
+    try {
+      const parsed = JSON.parse(errorBody);
+      detail = parsed?.error?.info || parsed?.error?.code || "";
+    } catch {
+      detail = errorBody.slice(0, 100);
     }
+    throw new Error(
+      `Wikipedia API error ${res.status}${res.statusText ? ` ${res.statusText}` : ""}${detail ? `: ${detail}` : ""}`,
+    );
+  }
+  const data = await res.json();
 
-    return {
-      editCount: user.editcount || 0,
-      timeSinceRegistration: user.registration
-        ? calculateTimeSince(user.registration)
-        : "Unknown",
-      lastSynced: Date.now(),
-    };
-  } catch (error) {
-    console.error("Wikipedia API fetch error:", error);
-    return {
-      editCount: 0,
-      timeSinceRegistration: "Error loading",
-      lastSynced: Date.now(),
-    };
+  const user = data?.query?.users?.[0];
+  if (!user || user.missing !== undefined) {
+    throw new Error(`User ${username} not found`);
+  }
+
+  return {
+    editCount: user.editcount || 0,
+    timeSinceRegistration: user.registration
+      ? calculateTimeSince(user.registration)
+      : "Unknown",
+    lastSynced: Date.now(),
+  };
+}
+
+async function fetchWikipediaStats(): Promise<WikipediaStats> {
+  if (pendingFetch) return pendingFetch;
+  pendingFetch = doFetch();
+  try {
+    return await pendingFetch;
+  } finally {
+    pendingFetch = null;
   }
 }
 
 export async function getWikipediaStats(): Promise<WikipediaStats> {
-  const CACHE_KEY = "wikipedia:stats";
-
   try {
     const cached = await redis.get(CACHE_KEY);
     if (cached) {
@@ -69,15 +117,51 @@ export async function getWikipediaStats(): Promise<WikipediaStats> {
     console.error("Valkey GET error:", err);
   }
 
-  const stats = await fetchWikipediaStats();
-
-  if (stats.editCount > 0) {
-    try {
-      await redis.set(CACHE_KEY, JSON.stringify(stats), "EX", 3600);
-    } catch (err) {
-      console.error("Valkey SET error:", err);
+  const hasErrorCache = await getCachedError();
+  if (hasErrorCache) {
+    const stale = await getStaleCache();
+    if (stale) {
+      console.error("Wikipedia API: Serving stale cache due to recent error");
+      return stale;
     }
+    return {
+      editCount: 0,
+      timeSinceRegistration: "Error loading",
+      lastSynced: Date.now(),
+    };
   }
 
-  return stats;
+  try {
+    const stats = await fetchWikipediaStats();
+
+    if (stats.editCount > 0) {
+      try {
+        await redis.set(CACHE_KEY, JSON.stringify(stats), "EX", CACHE_TTL);
+      } catch (err) {
+        console.error("Valkey SET error:", err);
+      }
+    }
+
+    return stats;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Wikipedia API fetch error:", error.message);
+    } else {
+      console.error("Wikipedia API fetch error:", String(error));
+    }
+
+    await setErrorCache();
+
+    const stale = await getStaleCache();
+    if (stale) {
+      console.error("Wikipedia API: Serving stale cache due to fetch error");
+      return stale;
+    }
+
+    return {
+      editCount: 0,
+      timeSinceRegistration: "Error loading",
+      lastSynced: Date.now(),
+    };
+  }
 }
