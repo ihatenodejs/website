@@ -1,0 +1,11 @@
+.next/
+node_modules/
+.git/
+.gitignore
+*.md
+.env
+.env.*
+!.env.example
+valkey/
+examples/
+.DS_Store

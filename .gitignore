@@ -41,9 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# lockfiles
+# npm
 package-lock.json
-bun.lock*
 
 # docker
 Dockerfile
