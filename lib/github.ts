@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { githubLogger, redisLogger } from "@/lib/logger";
 import { redis } from "./redis";
 
@@ -100,6 +102,7 @@ async function fetchGithubStats(): Promise<GithubStats> {
 }
 
 export async function getGithubStats(): Promise<GithubStats> {
+  await connection();
   const CACHE_KEY = "github:stats";
 
   try {

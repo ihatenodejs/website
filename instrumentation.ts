@@ -14,6 +14,11 @@ export function register() {
         lowestLevel: isDevelopment ? "debug" : "info",
         sinks: ["console"],
       },
+      {
+        category: ["logtape", "meta"],
+        lowestLevel: "warning",
+        sinks: ["console"],
+      },
     ],
   });
 }

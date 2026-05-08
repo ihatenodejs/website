@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { redisLogger, wikipediaLogger } from "@/lib/logger";
 import { redis } from "./redis";
 
@@ -121,6 +123,8 @@ async function fetchWikipediaStats(): Promise<WikipediaStats> {
 }
 
 export async function getWikipediaStats(): Promise<WikipediaStats> {
+  await connection();
+
   try {
     const cached = await redis.get(CACHE_KEY);
     if (cached) {

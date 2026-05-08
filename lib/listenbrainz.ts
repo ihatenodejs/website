@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import { listenBrainzLogger, redisLogger } from "@/lib/logger";
 import { redis } from "./redis";
 import fs from "fs";
@@ -48,6 +50,7 @@ async function fetchListenBrainzStats(): Promise<ListenBrainzStats> {
 }
 
 export async function getListenBrainzStats(): Promise<ListenBrainzStats> {
+  await connection();
   const CACHE_KEY = "listenbrainz:stats";
 
   try {
