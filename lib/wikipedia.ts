@@ -1,3 +1,4 @@
+import { redisLogger, wikipediaLogger } from "@/lib/logger";
 import { redis } from "./redis";
 
 export interface WikipediaStats {
@@ -12,6 +13,14 @@ const CACHE_TTL = 3600;
 const ERROR_TTL = 300;
 
 let pendingFetch: Promise<WikipediaStats> | null = null;
+
+function sanitizeErrorDetail(value: string, maxLength = 160): string {
+  if (!value) return "";
+  const withoutTags = value.replace(/<[^>]*>/g, " ");
+  const collapsed = withoutTags.replace(/\s+/g, " ").trim();
+  if (collapsed.length <= maxLength) return collapsed;
+  return `${collapsed.slice(0, maxLength)}...`;
+}
 
 function calculateTimeSince(dateString: string): string {
   const regDate = new Date(dateString);
@@ -45,7 +54,9 @@ async function setErrorCache(): Promise<void> {
   try {
     await redis.set(ERROR_CACHE_KEY, "1", "EX", ERROR_TTL);
   } catch (err) {
-    console.error("Valkey error cache SET error:", err);
+    redisLogger.error("Valkey error cache SET error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -57,7 +68,9 @@ async function getStaleCache(): Promise<WikipediaStats | null> {
       return { ...parsed, lastSynced: parsed.lastSynced || Date.now() };
     }
   } catch (err) {
-    console.error("Valkey stale cache GET error:", err);
+    redisLogger.error("Valkey stale cache GET error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
   return null;
 }
@@ -73,8 +86,9 @@ async function doFetch(): Promise<WikipediaStats> {
     try {
       const parsed = JSON.parse(errorBody);
       detail = parsed?.error?.info || parsed?.error?.code || "";
+      detail = sanitizeErrorDetail(detail || errorBody);
     } catch {
-      detail = errorBody.slice(0, 100);
+      detail = sanitizeErrorDetail(errorBody);
     }
     throw new Error(
       `Wikipedia API error ${res.status}${res.statusText ? ` ${res.statusText}` : ""}${detail ? `: ${detail}` : ""}`,
@@ -114,14 +128,18 @@ export async function getWikipediaStats(): Promise<WikipediaStats> {
       return { ...parsed, lastSynced: parsed.lastSynced || Date.now() };
     }
   } catch (err) {
-    console.error("Valkey GET error:", err);
+    redisLogger.error("Valkey GET error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   const hasErrorCache = await getCachedError();
   if (hasErrorCache) {
     const stale = await getStaleCache();
     if (stale) {
-      console.error("Wikipedia API: Serving stale cache due to recent error");
+      wikipediaLogger.warn(
+        "Wikipedia API: Serving stale cache due to recent error",
+      );
       return stale;
     }
     return {
@@ -138,23 +156,31 @@ export async function getWikipediaStats(): Promise<WikipediaStats> {
       try {
         await redis.set(CACHE_KEY, JSON.stringify(stats), "EX", CACHE_TTL);
       } catch (err) {
-        console.error("Valkey SET error:", err);
+        redisLogger.error("Valkey SET error", {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
     return stats;
   } catch (error) {
     if (error instanceof Error) {
-      console.error("Wikipedia API fetch error:", error.message);
+      wikipediaLogger.error("Wikipedia API fetch error", {
+        error: error.message,
+      });
     } else {
-      console.error("Wikipedia API fetch error:", String(error));
+      wikipediaLogger.error("Wikipedia API fetch error", {
+        error: String(error),
+      });
     }
 
     await setErrorCache();
 
     const stale = await getStaleCache();
     if (stale) {
-      console.error("Wikipedia API: Serving stale cache due to fetch error");
+      wikipediaLogger.warn(
+        "Wikipedia API: Serving stale cache due to fetch error",
+      );
       return stale;
     }
 

@@ -1,3 +1,4 @@
+import { githubLogger, redisLogger } from "@/lib/logger";
 import { redis } from "./redis";
 
 export interface GithubStats {
@@ -10,7 +11,7 @@ export interface GithubStats {
 async function fetchGithubStats(): Promise<GithubStats> {
   const token = process.env.GITHUB_PAT;
   if (!token) {
-    console.warn("No GITHUB_PAT configured");
+    githubLogger.warn("No GITHUB_PAT configured");
     return { commits: 0, repos: 0, stars: 0, lastSynced: Date.now() };
   }
 
@@ -91,7 +92,9 @@ async function fetchGithubStats(): Promise<GithubStats> {
 
     return { commits, repos, stars, lastSynced: Date.now() };
   } catch (error) {
-    console.error("GitHub API fetch error:", error);
+    githubLogger.error("GitHub API fetch error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { commits: 0, repos: 0, stars: 0, lastSynced: Date.now() };
   }
 }
@@ -106,7 +109,9 @@ export async function getGithubStats(): Promise<GithubStats> {
       return { ...parsed, lastSynced: parsed.lastSynced || Date.now() };
     }
   } catch (err) {
-    console.error("Valkey GET error:", err);
+    redisLogger.error("Valkey GET error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   const stats = await fetchGithubStats();
@@ -115,7 +120,9 @@ export async function getGithubStats(): Promise<GithubStats> {
     try {
       await redis.set(CACHE_KEY, JSON.stringify(stats), "EX", 3600);
     } catch (err) {
-      console.error("Valkey SET error:", err);
+      redisLogger.error("Valkey SET error", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

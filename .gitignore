@@ -52,3 +52,6 @@ docker-compose.yml
 
 # valkey
 valkey/
+
+# Agent skills from npm packages (managed by skills-npm)
+**/skills/npm-*

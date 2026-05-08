@@ -2,8 +2,9 @@ FROM oven/bun:latest AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json ./
-RUN bun install
+COPY bun.lock package.json ./
+ENV NODE_ENV=production
+RUN bun install --frozen-lockfile
 
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules

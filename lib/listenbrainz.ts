@@ -1,3 +1,4 @@
+import { listenBrainzLogger, redisLogger } from "@/lib/logger";
 import { redis } from "./redis";
 import fs from "fs";
 import path from "path";
@@ -17,7 +18,7 @@ async function fetchListenBrainzStats(): Promise<ListenBrainzStats> {
     const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
     version = pkg.version;
   } catch {
-    console.error("Could not read package.json version");
+    listenBrainzLogger.warn("Could not read package.json version");
   }
 
   const userAgent = `aidan.so/${version} ( ${email} )`;
@@ -39,7 +40,9 @@ async function fetchListenBrainzStats(): Promise<ListenBrainzStats> {
       lastSynced: Date.now(),
     };
   } catch (error) {
-    console.error("ListenBrainz API fetch error:", error);
+    listenBrainzLogger.error("ListenBrainz API fetch error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return { listenCount: 0, lastSynced: Date.now() };
   }
 }
@@ -54,7 +57,9 @@ export async function getListenBrainzStats(): Promise<ListenBrainzStats> {
       return { ...parsed, lastSynced: parsed.lastSynced || Date.now() };
     }
   } catch (err) {
-    console.error("Valkey GET error:", err);
+    redisLogger.error("Valkey GET error", {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   const stats = await fetchListenBrainzStats();
@@ -63,7 +68,9 @@ export async function getListenBrainzStats(): Promise<ListenBrainzStats> {
     try {
       await redis.set(CACHE_KEY, JSON.stringify(stats), "EX", 3600);
     } catch (err) {
-      console.error("Valkey SET error:", err);
+      redisLogger.error("Valkey SET error", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

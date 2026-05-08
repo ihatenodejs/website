@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { redisLogger } from "@/lib/logger";
 
 const globalForRedis = global as unknown as { redis: Redis | null };
 
@@ -19,7 +20,9 @@ function getRedis(): Redis {
   });
 
   redisInstance.on("error", (err) => {
-    console.error("[ioredis] Connection error:", err.message);
+    redisLogger.error("[ioredis] Connection error: {message}", {
+      message: err.message,
+    });
   });
 
   if (process.env.NODE_ENV !== "production") {
