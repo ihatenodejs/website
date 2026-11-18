@@ -134,8 +134,9 @@ function TermsRoute() {
           <p>
             I review comments before they appear. I may reject, remove, or
             delete any comment, and I may suspend or delete any account, if I
-            believe it breaks these terms, harms another person, or puts the site
-            at risk. I may also remove content in response to a legal request.
+            believe it breaks these terms, harms another person, or puts the
+            site at risk. I may also remove content in response to a legal
+            request.
           </p>
           <p>
             I do not monitor every profile or comment, and I do not guarantee
@@ -153,8 +154,8 @@ function TermsRoute() {
           <p>
             The site's design, text, and code are owned by Aidan Honor or used
             with permission. You may read the site, share links to it, and use
-            content you own. You may not copy, republish, or sell the site or its
-            content except as the law allows or with written permission.
+            content you own. You may not copy, republish, or sell the site or
+            its content except as the law allows or with written permission.
           </p>
           <p>Your own content remains yours, as described above.</p>
         </Panel>

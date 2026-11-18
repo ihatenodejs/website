@@ -68,7 +68,10 @@ export const profiles = pgTable(
       'profiles_username_format',
       sql`${table.username} ~ '^[a-z0-9_]{3,24}$'`,
     ),
-    check('profiles_theme_valid', sql`${table.theme} in ('night', 'blue', 'pink')`),
+    check(
+      'profiles_theme_valid',
+      sql`${table.theme} in ('night', 'blue', 'pink')`,
+    ),
     check(
       'profiles_preferred_theme_valid',
       sql`${table.preferredTheme} is null or ${table.preferredTheme} in ('night', 'blue', 'pink')`,
@@ -83,7 +86,10 @@ export const profiles = pgTable(
       'profiles_contact_discord_length',
       sql`char_length(${table.contactDiscord}) <= 32`,
     ),
-    check('profiles_contact_x_length', sql`char_length(${table.contactX}) <= 15`),
+    check(
+      'profiles_contact_x_length',
+      sql`char_length(${table.contactX}) <= 15`,
+    ),
     check(
       'profiles_contact_email_length',
       sql`char_length(${table.contactEmail}) <= 254`,
@@ -127,7 +133,13 @@ export const comments = pgTable(
     ),
     index('comments_status_created_idx').on(table.status, table.createdAt),
     index('comments_author_created_idx').on(table.authorId, table.createdAt),
-    check('comments_status_valid', sql`${table.status} in ('pending', 'approved')`),
-    check('comments_body_length', sql`char_length(${table.body}) between 1 and 500`),
+    check(
+      'comments_status_valid',
+      sql`${table.status} in ('pending', 'approved')`,
+    ),
+    check(
+      'comments_body_length',
+      sql`char_length(${table.body}) between 1 and 500`,
+    ),
   ],
 )

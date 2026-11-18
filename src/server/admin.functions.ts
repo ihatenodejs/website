@@ -14,16 +14,7 @@ import { deleteUploadedAvatar } from './storage.server'
 import { comments, profiles, user } from './schema'
 import { getAdminUser } from './session.server'
 import { getSiteTheme } from './settings.server'
-import {
-  asc,
-  count,
-  desc,
-  eq,
-  ilike,
-  or,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { asc, count, desc, eq, ilike, or, sql, type SQL } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { z } from 'zod'
 
@@ -220,7 +211,10 @@ export const setRoleFn = createServerFn({ method: 'POST' })
           }
         }
 
-        await tx.update(user).set({ role: data.role }).where(eq(user.id, target.id))
+        await tx
+          .update(user)
+          .set({ role: data.role })
+          .where(eq(user.id, target.id))
       })
     } catch (error) {
       if (error instanceof AdminPolicyError) {

@@ -1,8 +1,7 @@
 import { APIError } from 'better-auth/api'
 
 export type ActionResult<T = unknown> =
-  | ({ ok: true } & T)
-  | { ok: false; message: string }
+  ({ ok: true } & T) | { ok: false; message: string }
 
 export function messageFromAuthError(error: unknown, fallback: string) {
   if (error instanceof APIError) {

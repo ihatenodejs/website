@@ -46,10 +46,10 @@ function PrivacyRoute() {
           <p>
             <strong>Account information.</strong> When you create an account, I
             collect your email address, password, display name, and username. I
-            also collect the profile details you choose to add: a biography,
-            an avatar, and a profile theme. The account record includes when it
-            was created and when it was last changed. Your password is stored
-            in a protected form and cannot be read by me.
+            also collect the profile details you choose to add: a biography, an
+            avatar, and a profile theme. The account record includes when it was
+            created and when it was last changed. Your password is stored in a
+            protected form and cannot be read by me.
           </p>
           <p>
             <strong>Comments.</strong> When you post a comment, I collect the
@@ -133,8 +133,8 @@ function PrivacyRoute() {
               ;
             </li>
             <li>
-              the hosting provider that runs the site and stores its data,
-              which processes the information on my instructions;
+              the hosting provider that runs the site and stores its data, which
+              processes the information on my instructions;
             </li>
             <li>
               public pages, when you or I publish profile content or approved
@@ -207,9 +207,9 @@ function PrivacyRoute() {
         <Panel title="9. Your choices and rights">
           <p>
             You can view and change your profile from your{' '}
-            <Link to="/account">account page</Link>. You can delete your comments
-            there. You can also delete your account there, which removes the
-            information described above.
+            <Link to="/account">account page</Link>. You can delete your
+            comments there. You can also delete your account there, which
+            removes the information described above.
           </p>
           <p>
             Depending on where you live, you may have the right to ask for a
@@ -220,9 +220,9 @@ function PrivacyRoute() {
           </p>
           <p>
             To make a request, email{' '}
-            <a href="mailto:aidan@p0ntus.com">aidan@p0ntus.com</a>. I may ask for
-            proof that the account is yours. I will answer within the time the
-            law requires. You can also complain to the data protection
+            <a href="mailto:aidan@p0ntus.com">aidan@p0ntus.com</a>. I may ask
+            for proof that the account is yours. I will answer within the time
+            the law requires. You can also complain to the data protection
             authority where you live.
           </p>
         </Panel>
@@ -259,8 +259,9 @@ function PrivacyRoute() {
         <Panel title="12. Contact">
           <p>
             Questions about this policy can go to{' '}
-            <a href="mailto:aidan@p0ntus.com">aidan@p0ntus.com</a>. The rules for
-            using the site are in the <Link to="/terms">terms of service</Link>.
+            <a href="mailto:aidan@p0ntus.com">aidan@p0ntus.com</a>. The rules
+            for using the site are in the{' '}
+            <Link to="/terms">terms of service</Link>.
           </p>
         </Panel>
       </div>

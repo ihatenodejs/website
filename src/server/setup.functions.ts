@@ -28,8 +28,7 @@ async function getSetupStatus() {
       allowed: false,
       complete: bootstrap.complete,
       adminCount: bootstrap.adminCount,
-      reason:
-        'HOME_USERNAME is not configured. Set it before running setup.',
+      reason: 'HOME_USERNAME is not configured. Set it before running setup.',
     }
   }
   if (bootstrap.complete) {
@@ -100,7 +99,10 @@ export const completeSetupFn = createServerFn({ method: 'POST' })
 
       const status = await getSetupStatus()
       if (!status.allowed) {
-        return { ok: false, message: status.reason ?? 'Setup is not available.' }
+        return {
+          ok: false,
+          message: status.reason ?? 'Setup is not available.',
+        }
       }
 
       const intent: RegistrationIntent = {

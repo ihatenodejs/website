@@ -253,7 +253,8 @@ export const postCommentFn = createServerFn({ method: 'POST' })
 
     return {
       ok: true,
-      message: 'Comment submitted. It appears after an administrator approves it.',
+      message:
+        'Comment submitted. It appears after an administrator approves it.',
     }
   })
 
@@ -273,7 +274,10 @@ export const deleteOwnCommentFn = createServerFn({ method: 'POST' })
       .returning({ id: comments.id })
 
     if (deleted.length === 0) {
-      return { ok: false, message: 'That comment was not found on your account.' }
+      return {
+        ok: false,
+        message: 'That comment was not found on your account.',
+      }
     }
     return { ok: true }
   })
@@ -503,14 +507,20 @@ export const deleteOwnAccountFn = createServerFn({ method: 'POST' })
         await tx.delete(user).where(eq(user.id, current.id))
       })
     } catch (error) {
-      if (error instanceof AccountPolicyError && error.reason === 'LAST_ADMIN') {
+      if (
+        error instanceof AccountPolicyError &&
+        error.reason === 'LAST_ADMIN'
+      ) {
         return {
           ok: false,
           message:
             'You are the last administrator. Grant another administrator before deleting this account.',
         }
       }
-      return { ok: false, message: 'The account could not be deleted. Try again.' }
+      return {
+        ok: false,
+        message: 'The account could not be deleted. Try again.',
+      }
     }
 
     if (avatar) await deleteUploadedAvatar(avatar)

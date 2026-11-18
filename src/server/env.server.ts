@@ -12,9 +12,7 @@ const rawEnvSchema = z.object({
     .min(16, 'BOOTSTRAP_SECRET must be at least 16 characters.'),
   HOME_USERNAME: z.string().trim().default(''),
   TURNSTILE_SITE_KEY: z.string().min(1, 'TURNSTILE_SITE_KEY is required.'),
-  TURNSTILE_SECRET_KEY: z
-    .string()
-    .min(1, 'TURNSTILE_SECRET_KEY is required.'),
+  TURNSTILE_SECRET_KEY: z.string().min(1, 'TURNSTILE_SECRET_KEY is required.'),
   UPLOAD_DIR: z.string().min(1, 'UPLOAD_DIR is required.'),
 })
 
@@ -22,7 +20,9 @@ const parsed = rawEnvSchema.safeParse(process.env)
 
 if (!parsed.success) {
   const fields = parsed.error.issues
-    .map((issue) => `${issue.path.join('.') || 'environment'}: ${issue.message}`)
+    .map(
+      (issue) => `${issue.path.join('.') || 'environment'}: ${issue.message}`,
+    )
     .join('\n')
   throw new Error(`Invalid environment configuration:\n${fields}`)
 }

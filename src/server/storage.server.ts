@@ -11,10 +11,7 @@ const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 export class AvatarError extends Error {
   constructor(
     readonly reason:
-      | 'too-large'
-      | 'unsupported'
-      | 'invalid'
-      | 'too-many-pixels',
+      'too-large' | 'unsupported' | 'invalid' | 'too-many-pixels',
   ) {
     super(reason)
     this.name = 'AvatarError'
@@ -75,7 +72,10 @@ export async function processAvatar(buffer: Buffer) {
 
   let encoded: Buffer
   try {
-    encoded = await sharp(buffer, { failOn: 'error', limitInputPixels: 40_000_000 })
+    encoded = await sharp(buffer, {
+      failOn: 'error',
+      limitInputPixels: 40_000_000,
+    })
       .rotate()
       .resize({
         width: 512,

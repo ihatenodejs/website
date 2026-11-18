@@ -19,5 +19,7 @@ export const THEME_PAGE_COLORS: Record<Theme, string> = {
 }
 
 export function isTheme(value: unknown): value is Theme {
-  return typeof value === 'string' && (THEMES as readonly string[]).includes(value)
+  return (
+    typeof value === 'string' && (THEMES as readonly string[]).includes(value)
+  )
 }

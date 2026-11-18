@@ -187,7 +187,10 @@ body {
   margin: 0;
   background: var(--page);
   color: var(--ink);
-  font: 11px/1.5 Verdana, Geneva, sans-serif;
+  font:
+    11px/1.5 Verdana,
+    Geneva,
+    sans-serif;
   min-height: 100vh;
 }
 
@@ -390,7 +393,10 @@ textarea:disabled {
 }
 
 .wordmark {
-  font: bold 30px/1 Georgia, 'Times New Roman', serif;
+  font:
+    bold 30px/1 Georgia,
+    'Times New Roman',
+    serif;
   letter-spacing: -1px;
   color: #ffffff;
   text-decoration: none;
@@ -524,11 +530,7 @@ main {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(
-    180deg,
-    var(--title-from),
-    var(--title-to)
-  );
+  background: linear-gradient(180deg, var(--title-from), var(--title-to));
   border-bottom: 1px solid var(--title-edge);
   color: #ffffff;
   padding: 6px 8px;
@@ -537,7 +539,10 @@ main {
 
 .panel-head h2 {
   margin: 0;
-  font: bold 10px/1.4 Verdana, Geneva, sans-serif;
+  font:
+    bold 10px/1.4 Verdana,
+    Geneva,
+    sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -598,7 +603,10 @@ main {
 
 .profile-masthead h1 {
   margin: 0;
-  font: bold 31px/1.1 Georgia, 'Times New Roman', serif;
+  font:
+    bold 31px/1.1 Georgia,
+    'Times New Roman',
+    serif;
   letter-spacing: 0.3px;
   color: #ffffff;
 }
@@ -680,7 +688,10 @@ main {
   place-items: center;
   background: linear-gradient(135deg, var(--title-from), var(--title-to));
   color: #ffffff;
-  font: bold 18px/1 Georgia, 'Times New Roman', serif;
+  font:
+    bold 18px/1 Georgia,
+    'Times New Roman',
+    serif;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--line);
 }
@@ -947,7 +958,11 @@ a.contact-item:hover {
 }
 
 .button:hover {
-  background: linear-gradient(180deg, var(--title-hover-from), var(--title-hover-to));
+  background: linear-gradient(
+    180deg,
+    var(--title-hover-from),
+    var(--title-hover-to)
+  );
 }
 
 .button:active {
