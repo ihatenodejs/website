@@ -24,12 +24,16 @@ const JOURNAL = join(META_DIR, '_journal.json')
 const SCRATCH_NAME = 'ci-drift-check'
 
 function snapshotFiles(): Set<string> {
-  return new Set(readdirSync(META_DIR).filter((name) => name.endsWith('_snapshot.json')))
+  return new Set(
+    readdirSync(META_DIR).filter((name) => name.endsWith('_snapshot.json')),
+  )
 }
 
 const snapshotsBefore = snapshotFiles()
 const journalBefore = readFileSync(JOURNAL, 'utf8')
-const sqlishBefore = new Set(readdirSync(DRIZZLE_DIR).filter((name) => name.endsWith('.sql')))
+const sqlishBefore = new Set(
+  readdirSync(DRIZZLE_DIR).filter((name) => name.endsWith('.sql')),
+)
 
 const generated = Bun.spawnSync({
   cmd: ['bunx', 'drizzle-kit', 'generate', '--name', SCRATCH_NAME],
@@ -42,7 +46,9 @@ if (generated.exitCode !== 0) {
   // fails on an invalid schema definition, and swallowing that into a generic
   // drift message would send the author looking for a missing migration.
   console.error('drizzle-kit generate failed, so drift cannot be assessed:')
-  console.error(generated.stderr.toString().trim() || generated.stdout.toString().trim())
+  console.error(
+    generated.stderr.toString().trim() || generated.stdout.toString().trim(),
+  )
   process.exit(1)
 }
 
@@ -50,21 +56,29 @@ if (generated.exitCode !== 0) {
 function cleanup(): void {
   writeFileSync(JOURNAL, journalBefore)
   for (const name of snapshotFiles()) {
-    if (!snapshotsBefore.has(name)) rmSync(join(META_DIR, name), { force: true })
+    if (!snapshotsBefore.has(name))
+      rmSync(join(META_DIR, name), { force: true })
   }
   for (const name of readdirSync(DRIZZLE_DIR)) {
-    if (name.endsWith('.sql') && !sqlishBefore.has(name)) rmSync(join(DRIZZLE_DIR, name), { force: true })
+    if (name.endsWith('.sql') && !sqlishBefore.has(name))
+      rmSync(join(DRIZZLE_DIR, name), { force: true })
   }
 }
 
-const addedSql = readdirSync(DRIZZLE_DIR).filter((name) => name.endsWith('.sql') && !sqlishBefore.has(name))
-const addedSnapshots = [...snapshotFiles()].filter((name) => !snapshotsBefore.has(name))
+const addedSql = readdirSync(DRIZZLE_DIR).filter(
+  (name) => name.endsWith('.sql') && !sqlishBefore.has(name),
+)
+const addedSnapshots = [...snapshotFiles()].filter(
+  (name) => !snapshotsBefore.has(name),
+)
 
 cleanup()
 
 if (addedSql.length > 0 || addedSnapshots.length > 0) {
   console.error('')
-  console.error('::error::schema.ts changes are not covered by a committed migration.')
+  console.error(
+    '::error::schema.ts changes are not covered by a committed migration.',
+  )
   console.error('')
   console.error('A migration would have been generated as:')
   for (const name of addedSql) console.error(`  drizzle/${name}`)
@@ -74,4 +88,6 @@ if (addedSql.length > 0 || addedSnapshots.length > 0) {
   process.exit(1)
 }
 
-console.log('No schema drift: every change in schema.ts has a committed migration.')
+console.log(
+  'No schema drift: every change in schema.ts has a committed migration.',
+)
