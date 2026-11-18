@@ -1,0 +1,81 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # The persistence suite is the part that actually exercises the schema and
+      # the migrations, and it self-skips without a database. Running it against a
+      # real PostgreSQL is the difference between "the suite passed" and "the part
+      # of the suite that touches the database never ran".
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: p0ntus
+          POSTGRES_PASSWORD: p0ntus
+          POSTGRES_DB: p0ntus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U p0ntus -d p0ntus"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # The tests read TEST_DATABASE_URL; this is a throwaway database inside the
+      # job. Every other variable the server validates is a literal because tests
+      # only import modules that parse them, not values that need to be real.
+      TEST_DATABASE_URL: postgres://p0ntus:p0ntus@127.0.0.1:5432/p0ntus
+      APP_ORIGIN: http://localhost:3000
+      DATABASE_URL: postgres://p0ntus:p0ntus@127.0.0.1:5432/p0ntus
+      BETTER_AUTH_SECRET: ci-only-secret-that-is-at-least-32-characters
+      BOOTSTRAP_SECRET: ci-only-bootstrap-secret
+      HOME_USERNAME: p0ntus
+      # Cloudflare's public test keys: they pass every challenge and are only for
+      # local or test deployments.
+      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+      TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      UPLOAD_DIR: /tmp/uploads
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # The lockfile is the source of truth; --frozen-lockfile fails the job
+      # instead of silently resolving a different tree.
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      # Fails the job when the persistence suite skipped instead of silently
+      # reporting a green run that never touched PostgreSQL.
+      - name: Test
+        run: |
+          bun run test | tee test-output.txt
+          if grep -q "skipped" test-output.txt; then
+            echo "::error::The persistence suite skipped; TEST_DATABASE_URL did not reach it."
+            exit 1
+          fi
+
+      - name: Build
+        run: bun run build
