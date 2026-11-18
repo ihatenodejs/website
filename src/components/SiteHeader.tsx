@@ -29,7 +29,9 @@ export function SiteHeader({ session }: { session?: SessionSummary | null }) {
                   <span>
                     Signed in as{' '}
                     <Link to="/account">
-                      {session.username ? `@${session.username}` : session.displayName}
+                      {session.username
+                        ? `@${session.username}`
+                        : session.displayName}
                     </Link>
                   </span>
                   <form
@@ -62,7 +64,12 @@ export function SiteHeader({ session }: { session?: SessionSummary | null }) {
           <Link to="/" className="wordmark">
             p0ntus<span aria-hidden="true">.</span>
           </Link>
-          <form className="site-search" action="/members" method="get" role="search">
+          <form
+            className="site-search"
+            action="/members"
+            method="get"
+            role="search"
+          >
             <label className="sr-only" htmlFor="site-search-q">
               Search members
             </label>

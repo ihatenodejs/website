@@ -63,9 +63,7 @@ function CommentRow({
     <li className="account-comment">
       <div>
         <p className="comment-meta">
-          <span
-            className={`status-label status-${comment.status}`}
-          >
+          <span className={`status-label status-${comment.status}`}>
             {comment.status === 'approved' ? 'Approved' : 'Pending review'}
           </span>
           <span className="comment-time">
@@ -75,10 +73,7 @@ function CommentRow({
         <p className="comment-text">{comment.body}</p>
         <p className="comment-target">
           On{' '}
-          <Link
-            to="/u/$username"
-            params={{ username: comment.targetUsername }}
-          >
+          <Link to="/u/$username" params={{ username: comment.targetUsername }}>
             {comment.targetDisplayName}&apos;s profile
           </Link>
         </p>
@@ -112,7 +107,8 @@ function CommentRow({
 function AccountRoute() {
   const data = Route.useLoaderData()
   const router = useRouter()
-  const profile = data.authenticated && !data.profileMissing ? data.profile : null
+  const profile =
+    data.authenticated && !data.profileMissing ? data.profile : null
 
   const [displayName, setDisplayName] = useState(profile?.displayName ?? '')
   const [username, setUsername] = useState(profile?.username ?? '')
@@ -169,183 +165,180 @@ function AccountRoute() {
         <div className="account-profile">
           <Panel
             title="Public profile"
-          hint={
-            <Link
-              to="/u/$username"
-              params={{ username: profile.username }}
-            >
-              View public page
-            </Link>
-          }
-        >
-          <div className="account-avatar">
-            <Avatar
-              src={profile.avatarUrl}
-              name={profile.displayName}
-              size="large"
-            />
-            <div>
-              <p className="portrait-name">@{profile.username}</p>
-              <p className="field-note">
-                Displayed with your display name on your profile and comments.
-              </p>
-            </div>
-          </div>
-
-          <form
-            className="stack-form"
-            onSubmit={async (event) => {
-              event.preventDefault()
-              const parsedUrl = avatarUrlSchema.safeParse(avatarUrl)
-              if (!parsedUrl.success) {
-                setResult({
-                  ok: false,
-                  message:
-                    parsedUrl.error.issues[0]?.message ??
-                    'Enter a valid HTTPS avatar URL.',
-                })
-                return
-              }
-              setBusy(true)
-              setResult(null)
-              const next = await runAction(
-                () =>
-                  updateProfileFn({
-                    data: {
-                      displayName,
-                      tagline,
-                      username,
-                      bio,
-                      theme,
-                      avatarUrl,
-                      clearAvatar,
-                    },
-                  }),
-                'Your profile could not be saved. Try again.',
-              )
-              setBusy(false)
-              setResult(next)
-              if (next.ok) {
-                setDisplayName(next.profile.displayName)
-                setUsername(next.profile.username)
-                setTagline(next.profile.tagline)
-                setBio(next.profile.bio)
-                setAvatarUrl(
-                  next.profile.avatarUrl?.startsWith('https://')
-                    ? next.profile.avatarUrl
-                    : '',
-                )
-                setClearAvatar(false)
-                if (isTheme(next.profile.theme)) setTheme(next.profile.theme)
-                await router.invalidate()
-              }
-            }}
+            hint={
+              <Link to="/u/$username" params={{ username: profile.username }}>
+                View public page
+              </Link>
+            }
           >
-            <label className="field">
-              <span>Display name</span>
-              <input
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                maxLength={80}
-                required
+            <div className="account-avatar">
+              <Avatar
+                src={profile.avatarUrl}
+                name={profile.displayName}
+                size="large"
               />
-            </label>
+              <div>
+                <p className="portrait-name">@{profile.username}</p>
+                <p className="field-note">
+                  Displayed with your display name on your profile and comments.
+                </p>
+              </div>
+            </div>
 
-            <label className="field">
-              <span>Username</span>
-              <input
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                minLength={3}
-                maxLength={24}
-                pattern="[A-Za-z0-9_]{3,24}"
-                required
-                disabled={homeProtected}
-                spellCheck={false}
-              />
-              <span className="field-note">
-                {homeProtected
-                  ? 'The home profile username is fixed by HOME_USERNAME and cannot be changed.'
-                  : 'Changing it makes the old profile URL stop resolving. Stored lowercase.'}
-              </span>
-            </label>
+            <form
+              className="stack-form"
+              onSubmit={async (event) => {
+                event.preventDefault()
+                const parsedUrl = avatarUrlSchema.safeParse(avatarUrl)
+                if (!parsedUrl.success) {
+                  setResult({
+                    ok: false,
+                    message:
+                      parsedUrl.error.issues[0]?.message ??
+                      'Enter a valid HTTPS avatar URL.',
+                  })
+                  return
+                }
+                setBusy(true)
+                setResult(null)
+                const next = await runAction(
+                  () =>
+                    updateProfileFn({
+                      data: {
+                        displayName,
+                        tagline,
+                        username,
+                        bio,
+                        theme,
+                        avatarUrl,
+                        clearAvatar,
+                      },
+                    }),
+                  'Your profile could not be saved. Try again.',
+                )
+                setBusy(false)
+                setResult(next)
+                if (next.ok) {
+                  setDisplayName(next.profile.displayName)
+                  setUsername(next.profile.username)
+                  setTagline(next.profile.tagline)
+                  setBio(next.profile.bio)
+                  setAvatarUrl(
+                    next.profile.avatarUrl?.startsWith('https://')
+                      ? next.profile.avatarUrl
+                      : '',
+                  )
+                  setClearAvatar(false)
+                  if (isTheme(next.profile.theme)) setTheme(next.profile.theme)
+                  await router.invalidate()
+                }
+              }}
+            >
+              <label className="field">
+                <span>Display name</span>
+                <input
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  maxLength={80}
+                  required
+                />
+              </label>
 
-            <label className="field">
-              <span>Tagline</span>
-              <input
-                value={tagline}
-                onChange={(event) => setTagline(event.target.value)}
-                maxLength={160}
-                placeholder="One line about you"
-              />
-              <span className="field-note">
-                Shown under your handle on your profile. {tagline.length}/160
-                characters.
-              </span>
-            </label>
+              <label className="field">
+                <span>Username</span>
+                <input
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  minLength={3}
+                  maxLength={24}
+                  pattern="[A-Za-z0-9_]{3,24}"
+                  required
+                  disabled={homeProtected}
+                  spellCheck={false}
+                />
+                <span className="field-note">
+                  {homeProtected
+                    ? 'The home profile username is fixed by HOME_USERNAME and cannot be changed.'
+                    : 'Changing it makes the old profile URL stop resolving. Stored lowercase.'}
+                </span>
+              </label>
 
-            <label className="field">
-              <span>Bio</span>
-              <textarea
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-                maxLength={2000}
-                rows={7}
-              />
-              <span className="field-note">{bio.length}/2000 characters</span>
-            </label>
+              <label className="field">
+                <span>Tagline</span>
+                <input
+                  value={tagline}
+                  onChange={(event) => setTagline(event.target.value)}
+                  maxLength={160}
+                  placeholder="One line about you"
+                />
+                <span className="field-note">
+                  Shown under your handle on your profile. {tagline.length}/160
+                  characters.
+                </span>
+              </label>
 
-            <label className="field">
-              <span>Profile theme</span>
-              <select
-                value={theme}
-                onChange={(event) => {
-                  const next = event.target.value
-                  if (isTheme(next)) setTheme(next)
-                }}
-              >
-                {THEMES.map((value) => (
-                  <option key={value} value={value}>
-                    {THEME_LABELS[value]}
-                  </option>
-                ))}
-              </select>
-              <span className="field-note">
-                Applies to your public profile for visitors. The rest of the
-                site uses the color theme selected by an administrator.
-              </span>
-            </label>
+              <label className="field">
+                <span>Bio</span>
+                <textarea
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                  maxLength={2000}
+                  rows={7}
+                />
+                <span className="field-note">{bio.length}/2000 characters</span>
+              </label>
 
-            <label className="field">
-              <span>Avatar URL</span>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(event) => setAvatarUrl(event.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                maxLength={500}
-              />
-              <span className="field-note">
-                HTTPS only. The image host receives requests from visitors who
-                view your profile.
-              </span>
-            </label>
+              <label className="field">
+                <span>Profile theme</span>
+                <select
+                  value={theme}
+                  onChange={(event) => {
+                    const next = event.target.value
+                    if (isTheme(next)) setTheme(next)
+                  }}
+                >
+                  {THEMES.map((value) => (
+                    <option key={value} value={value}>
+                      {THEME_LABELS[value]}
+                    </option>
+                  ))}
+                </select>
+                <span className="field-note">
+                  Applies to your public profile for visitors. The rest of the
+                  site uses the color theme selected by an administrator.
+                </span>
+              </label>
 
-            <label className="checkbox-field">
-              <input
-                type="checkbox"
-                checked={clearAvatar}
-                onChange={(event) => setClearAvatar(event.target.checked)}
-              />
-              <span>Remove the current avatar when saving</span>
-            </label>
+              <label className="field">
+                <span>Avatar URL</span>
+                <input
+                  type="url"
+                  value={avatarUrl}
+                  onChange={(event) => setAvatarUrl(event.target.value)}
+                  placeholder="https://example.com/photo.jpg"
+                  maxLength={500}
+                />
+                <span className="field-note">
+                  HTTPS only. The image host receives requests from visitors who
+                  view your profile.
+                </span>
+              </label>
 
-            <button type="submit" className="button" disabled={busy}>
-              {busy ? 'Saving…' : 'Save profile'}
-            </button>
-            <FormMessage result={result} />
-          </form>
-        </Panel>
+              <label className="checkbox-field">
+                <input
+                  type="checkbox"
+                  checked={clearAvatar}
+                  onChange={(event) => setClearAvatar(event.target.checked)}
+                />
+                <span>Remove the current avatar when saving</span>
+              </label>
+
+              <button type="submit" className="button" disabled={busy}>
+                {busy ? 'Saving…' : 'Save profile'}
+              </button>
+              <FormMessage result={result} />
+            </form>
+          </Panel>
         </div>
 
         <div className="account-contact">
@@ -420,9 +413,10 @@ function AccountRoute() {
                     method: 'POST',
                     body: form,
                   })
-                  const payload = (await response.json().catch(() => null)) as
-                    | { ok?: boolean; message?: string }
-                    | null
+                  const payload = (await response.json().catch(() => null)) as {
+                    ok?: boolean
+                    message?: string
+                  } | null
                   setUploadBusy(false)
                   const next = {
                     ok: response.ok && payload?.ok === true,
@@ -471,7 +465,9 @@ function AccountRoute() {
                 setThemeResult(null)
                 const next = await runAction(
                   () =>
-                    updateThemePreferenceFn({ data: { theme: themePreference } }),
+                    updateThemePreferenceFn({
+                      data: { theme: themePreference },
+                    }),
                   'Your color theme could not be saved. Try again.',
                 )
                 setThemeBusy(false)

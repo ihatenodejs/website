@@ -93,12 +93,7 @@ function SetupRoute() {
         >
           <label className="field">
             <span>Bootstrap secret</span>
-            <input
-              name="secret"
-              type="password"
-              autoComplete="off"
-              required
-            />
+            <input name="secret" type="password" autoComplete="off" required />
           </label>
           <label className="field">
             <span>Home username</span>

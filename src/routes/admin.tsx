@@ -11,11 +11,7 @@ import { Panel } from '~/components/Panel'
 import { formatDateTime } from '~/lib/format'
 import { runAction } from '~/lib/run-action'
 import { THEMES, THEME_LABELS, isTheme, type Theme } from '~/lib/theme'
-import {
-  parsePage,
-  parseSearchQuery,
-  parseStatus,
-} from '~/lib/validation'
+import { parsePage, parseSearchQuery, parseStatus } from '~/lib/validation'
 import {
   adminDeleteUserFn,
   getAdminDataFn,
@@ -206,9 +202,7 @@ function UserRow({
         {member.isHome ? <span className="tag">Home profile</span> : null}
         {member.isAdmin ? <span className="tag">Administrator</span> : null}
       </div>
-      <p className="field-note">
-        Joined {formatDateTime(member.createdAt)}
-      </p>
+      <p className="field-note">Joined {formatDateTime(member.createdAt)}</p>
       <div className="moderation-actions">
         <button
           type="button"
@@ -236,7 +230,9 @@ function UserRow({
               : 'Grant administrator'}
         </button>
         {member.isHome ? (
-          <span className="field-note">The home profile cannot be deleted.</span>
+          <span className="field-note">
+            The home profile cannot be deleted.
+          </span>
         ) : (
           <ConfirmDelete
             username={member.username}
@@ -432,7 +428,9 @@ function AdminRoute() {
                   <p className="comment-text">{comment.body}</p>
                   <CommentControls
                     commentId={comment.id}
-                    status={comment.status === 'approved' ? 'approved' : 'pending'}
+                    status={
+                      comment.status === 'approved' ? 'approved' : 'pending'
+                    }
                   />
                 </li>
               ))}
@@ -524,9 +522,7 @@ function AdminRoute() {
 
           {data.users.length === 0 ? (
             <p className="empty">
-              {data.q
-                ? `No accounts match “${data.q}”.`
-                : 'No accounts exist.'}
+              {data.q ? `No accounts match “${data.q}”.` : 'No accounts exist.'}
             </p>
           ) : (
             <ul className="admin-users">
@@ -537,7 +533,10 @@ function AdminRoute() {
           )}
 
           {data.userPageCount > 1 ? (
-            <nav className="pagination" aria-label="Member administration pages">
+            <nav
+              className="pagination"
+              aria-label="Member administration pages"
+            >
               {data.usersPage > 1 ? (
                 <Link
                   to="/admin"

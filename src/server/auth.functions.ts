@@ -30,7 +30,8 @@ export const signUpFn = createServerFn({ method: 'POST' })
     if (!bootstrap.complete) {
       return {
         ok: false,
-        message: 'Registration opens after the first administrator completes setup.',
+        message:
+          'Registration opens after the first administrator completes setup.',
       }
     }
 

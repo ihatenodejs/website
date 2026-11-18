@@ -104,10 +104,19 @@ describe('contactValuesSchema', () => {
       github: '',
       instagram: '',
     }
-    expect(contactValuesSchema.safeParse({ ...empty, telegram: 'abc' }).success).toBe(false)
-    expect(contactValuesSchema.safeParse({ ...empty, github: '-example' }).success).toBe(false)
-    expect(contactValuesSchema.safeParse({ ...empty, instagram: 'a..b' }).success).toBe(false)
-    expect(contactValuesSchema.safeParse({ ...empty, email: 'not-an-email' }).success).toBe(false)
+    expect(
+      contactValuesSchema.safeParse({ ...empty, telegram: 'abc' }).success,
+    ).toBe(false)
+    expect(
+      contactValuesSchema.safeParse({ ...empty, github: '-example' }).success,
+    ).toBe(false)
+    expect(
+      contactValuesSchema.safeParse({ ...empty, instagram: 'a..b' }).success,
+    ).toBe(false)
+    expect(
+      contactValuesSchema.safeParse({ ...empty, email: 'not-an-email' })
+        .success,
+    ).toBe(false)
   })
 })
 
