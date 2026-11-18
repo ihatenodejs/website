@@ -1,0 +1,16 @@
+# Agent Skills
+# Generated with `bunx skills@latest`
+.agents
+.claude
+.hermes
+
+node_modules
+.output
+.tanstack
+.env
+.env.*
+!.env.example
+uploads
+coverage
+*.log
+.DS_Store

@@ -1,0 +1,46 @@
+name: p0ntus
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: p0ntus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: p0ntus
+    volumes:
+      - p0ntus-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U p0ntus -d p0ntus']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - '5432:5432'
+    networks:
+      - p0ntus
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://p0ntus:${POSTGRES_PASSWORD}@db:5432/p0ntus
+      UPLOAD_DIR: /data/uploads
+    ports:
+      - '3000:3000'
+    volumes:
+      - p0ntus-uploads:/data/uploads
+    networks:
+      - p0ntus
+
+volumes:
+  p0ntus-db:
+  p0ntus-uploads:
+
+networks:
+  p0ntus:
