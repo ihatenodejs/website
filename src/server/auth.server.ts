@@ -91,7 +91,8 @@ export const auth = betterAuth({
             }
             if (!env.HOME_USERNAME || intent.username !== env.HOME_USERNAME) {
               throw new APIError('BAD_REQUEST', {
-                message: 'The first account must use the configured home username.',
+                message:
+                  'The first account must use the configured home username.',
                 code: 'HOME_USERNAME_MISMATCH',
               })
             }
@@ -147,7 +148,9 @@ export const auth = betterAuth({
             })
           } catch (error) {
             await db.transaction(async (tx) => {
-              await tx.delete(appState).where(eq(appState.homeUserId, createdUser.id))
+              await tx
+                .delete(appState)
+                .where(eq(appState.homeUserId, createdUser.id))
               await tx.delete(user).where(eq(user.id, createdUser.id))
             })
             throw new APIError('BAD_REQUEST', {

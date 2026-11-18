@@ -284,14 +284,8 @@ export function ProfilePage({
           </div>
 
           <div className="profile-comments">
-            <Panel
-              title="Comments"
-              hint={`Approved only · page ${page}`}
-            >
-              <CommentComposer
-                targetUserId={profile.userId}
-                viewer={viewer}
-              />
+            <Panel title="Comments" hint={`Approved only · page ${page}`}>
+              <CommentComposer targetUserId={profile.userId} viewer={viewer} />
 
               {pageInvalid ? (
                 <p className="notice" role="status">
@@ -315,89 +309,89 @@ export function ProfilePage({
                       </p>
                     }
                   >
-                  {(result) => {
-                    if (!result.ok) {
-                      return (
-                        <p className="form-error" role="alert">
-                          {result.message}
-                        </p>
-                      )
-                    }
-                    if (result.comments.length === 0) {
-                      return (
-                        <div className="empty-state">
-                          <p>
-                            No approved comments
-                            {result.total > 0 ? ' on this page' : ' yet'}.
+                    {(result) => {
+                      if (!result.ok) {
+                        return (
+                          <p className="form-error" role="alert">
+                            {result.message}
                           </p>
-                          {result.total > 0
-                            ? commentPageLink(1, 'Go to the first page')
-                            : null}
-                        </div>
-                      )
-                    }
-                    return (
-                      <>
-                        <ul className="comment-list">
-                          {result.comments.map((comment) => (
-                            <li key={comment.id} className="comment">
-                              <Avatar
-                                src={null}
-                                name={comment.authorName}
-                                size="small"
-                              />
-                              <div className="comment-body">
-                                <p className="comment-meta">
-                                  {comment.authorUsername ? (
-                                    <Link
-                                      to="/u/$username"
-                                      params={{
-                                        username: comment.authorUsername,
-                                      }}
-                                      className="comment-author"
-                                    >
-                                      {comment.authorName}
-                                    </Link>
-                                  ) : (
-                                    <span className="comment-author">
-                                      {comment.authorName}
+                        )
+                      }
+                      if (result.comments.length === 0) {
+                        return (
+                          <div className="empty-state">
+                            <p>
+                              No approved comments
+                              {result.total > 0 ? ' on this page' : ' yet'}.
+                            </p>
+                            {result.total > 0
+                              ? commentPageLink(1, 'Go to the first page')
+                              : null}
+                          </div>
+                        )
+                      }
+                      return (
+                        <>
+                          <ul className="comment-list">
+                            {result.comments.map((comment) => (
+                              <li key={comment.id} className="comment">
+                                <Avatar
+                                  src={null}
+                                  name={comment.authorName}
+                                  size="small"
+                                />
+                                <div className="comment-body">
+                                  <p className="comment-meta">
+                                    {comment.authorUsername ? (
+                                      <Link
+                                        to="/u/$username"
+                                        params={{
+                                          username: comment.authorUsername,
+                                        }}
+                                        className="comment-author"
+                                      >
+                                        {comment.authorName}
+                                      </Link>
+                                    ) : (
+                                      <span className="comment-author">
+                                        {comment.authorName}
+                                      </span>
+                                    )}
+                                    <span className="comment-time">
+                                      {formatDateTime(comment.createdAt)}
                                     </span>
-                                  )}
-                                  <span className="comment-time">
-                                    {formatDateTime(comment.createdAt)}
-                                  </span>
-                                </p>
-                                <p className="comment-text">{comment.body}</p>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                        {result.pageCount > 1 ? (
-                          <nav
-                            className="pagination"
-                            aria-label="Comment pages"
-                          >
-                            {result.page > 1
-                              ? commentPageLink(
-                                  result.page - 1,
-                                  'Previous comments',
-                                )
-                              : null}
-                            <span>
-                              Page {result.page} of {result.pageCount}
-                            </span>
-                            {result.page < result.pageCount
-                              ? commentPageLink(
-                                  result.page + 1,
-                                  'Next comments',
-                                )
-                              : null}
-                          </nav>
-                        ) : null}
-                      </>
-                    )
-                  }}
-                </Await>
+                                  </p>
+                                  <p className="comment-text">{comment.body}</p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                          {result.pageCount > 1 ? (
+                            <nav
+                              className="pagination"
+                              aria-label="Comment pages"
+                            >
+                              {result.page > 1
+                                ? commentPageLink(
+                                    result.page - 1,
+                                    'Previous comments',
+                                  )
+                                : null}
+                              <span>
+                                Page {result.page} of {result.pageCount}
+                              </span>
+                              {result.page < result.pageCount
+                                ? commentPageLink(
+                                    result.page + 1,
+                                    'Next comments',
+                                  )
+                                : null}
+                            </nav>
+                          ) : null}
+                        </>
+                      )
+                    }}
+                  </Await>
                 </Suspense>
               </CommentBoundary>
             </Panel>

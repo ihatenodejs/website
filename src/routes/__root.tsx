@@ -24,8 +24,7 @@ export const Route = createRootRoute({
       },
       {
         name: 'description',
-        content:
-          "My personal website and mini social network",
+        content: 'My personal website and mini social network',
       },
       { name: 'theme-color', content: '#160e28' },
     ],
@@ -129,8 +128,8 @@ function RootError({ reset }: { reset: () => void }) {
         <div className="canvas page page-narrow">
           <h1>This page could not load</h1>
           <p className="page-intro">
-            The request failed before the page could render. The database may
-            be unavailable, or the address may be wrong.
+            The request failed before the page could render. The database may be
+            unavailable, or the address may be wrong.
           </p>
           <Panel title="What you can do">
             <div className="button-row">

@@ -47,7 +47,12 @@ function handleSchema(
       const stripped = value.replace(/^@+/, '').trim()
       return lowercase ? stripped.toLowerCase() : stripped
     })
-    .pipe(z.string().max(max, message).refine((value) => value === '' || pattern.test(value), message))
+    .pipe(
+      z
+        .string()
+        .max(max, message)
+        .refine((value) => value === '' || pattern.test(value), message),
+    )
 }
 
 const contactEmailValue = z.email('Enter a valid email address.')
@@ -59,7 +64,11 @@ export const contactValuesSchema = z.object({
     'Use 2 to 32 letters, digits, dots, or underscores.',
     true,
   ),
-  x: handleSchema(15, /^[A-Za-z0-9_]{1,15}$/, 'Use 1 to 15 letters, digits, or underscores.'),
+  x: handleSchema(
+    15,
+    /^[A-Za-z0-9_]{1,15}$/,
+    'Use 1 to 15 letters, digits, or underscores.',
+  ),
   email: z
     .string()
     .trim()
