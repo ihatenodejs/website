@@ -12,6 +12,7 @@
     "lint": "prettier --check . && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run scripts/migrate.ts",
+    "db:check": "bun run scripts/check-migrations.ts",
     "test": "vitest run"
   },
   "dependencies": {
