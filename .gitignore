@@ -10,7 +10,12 @@ node_modules
 .env
 .env.*
 !.env.example
-uploads
+# Runtime data from the compose bind mounts. Not source, and on the host they live
+# inside the checkout at ./db and ./uploads - so without these two entries the tree
+# is permanently "dirty" and any deploy step that checks for a clean tree refuses
+# forever. PostgreSQL's own files belong in a backup, not in git.
+db/
+uploads/
 coverage
 *.log
 .DS_Store
