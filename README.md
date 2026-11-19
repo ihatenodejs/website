@@ -62,31 +62,31 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Compose starts PostgreSQL and the app, waits for the database health check, runs the committed Drizzle migrations, and only then starts the server. A failed migration stops startup. PostgreSQL and uploads use separate named volumes. Only the app port is published.
+Compose starts PostgreSQL and the app, waits for the database health check, runs the committed Drizzle migrations, and only then starts the server. A failed migration stops startup.
+
+**No port is published.** Both services listen only on the compose network; a reverse proxy on the same external `p0ntus` network is what faces the internet. Publishing `5432` would expose the database, because Docker writes its own nat chain that a host firewall never evaluates — so the port stays closed in the compose file rather than relying on firewall rules.
 
 ```bash
-docker compose logs -f app
+docker compose logs -f p0ntus
 docker compose down
 docker compose up -d
 ```
 
-The container runs as a non-root user. Uploaded files live in `p0ntus-uploads`; database files live in `p0ntus-db`.
+The container runs as a non-root user. Uploaded files live in `./uploads`; database files live in `./db`. Both are bind mounts, so they can be inspected and dumped without going through Docker.
 
 ### Backup and restore
 
 ```bash
 # Database
-docker compose exec -T db pg_dump -U p0ntus -Fc p0ntus > p0ntus.dump
-docker compose exec -T db pg_restore -U p0ntus -d p0ntus --clean --if-exists < p0ntus.dump
+docker compose exec -T p0ntus-db pg_dump -U p0ntus -Fc p0ntus > p0ntus.dump
+docker compose exec -T p0ntus-db pg_restore -U p0ntus -d p0ntus --clean --if-exists < p0ntus.dump
 
-# Uploaded avatars
-docker run --rm -v p0ntus_p0ntus-uploads:/data -v "$PWD":/backup alpine \
-  tar czf /backup/uploads.tgz -C /data .
-docker run --rm -v p0ntus_p0ntus-uploads:/data -v "$PWD":/backup alpine \
-  sh -c 'cd /data && tar xzf /backup/uploads.tgz'
+# Uploaded avatars - a bind mount, so tar reads it directly
+tar czf uploads.tgz -C ./uploads .
+tar xzf uploads.tgz -C ./uploads
 ```
 
-Volume names follow the Compose project name, `p0ntus` by default. Use `docker volume ls` if the project was renamed.
+Because both are bind mounts under the compose directory, a filesystem-level backup of `./db` and `./uploads` is also a complete backup — stop the stack first so PostgreSQL's files are consistent.
 
 ## Commands
 
