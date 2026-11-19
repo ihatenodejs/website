@@ -1,46 +1,71 @@
+# Deployment shape for p0ntus.com.
+#
+# This file is the source of truth for how the site runs on the OVH host. It was
+# reconstructed from the running production stack, which had drifted from this file
+# by hand-editing the host directly: different service names, bind mounts instead of
+# named volumes, and the database port published to the internet. Reproducing that
+# drift here is what makes a deploy safe again - see the notes inline.
+#
+# Verify with: docker compose config --quiet
+
 name: p0ntus
 
 services:
-  db:
+  # Named `p0ntus-db` rather than `db` on purpose. Renaming a compose service
+  # changes its network alias, and DATABASE_URL has to change with it or the app
+  # fails with `getaddrinfo EAI_AGAIN db` - an error that reads like a SQL problem
+  # and is not.
+  p0ntus-db:
+    container_name: p0ntus-db
     image: postgres:17-alpine
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: p0ntus
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: p0ntus
     volumes:
-      - p0ntus-db:/var/lib/postgresql/data
+      # Bind mount, not a named volume: the database files sit in ./db where they
+      # can be inspected and dumped without going through docker, which is what the
+      # backup procedure in the README assumes.
+      - ./db:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U p0ntus -d p0ntus']
       interval: 5s
       timeout: 5s
       retries: 20
-    ports:
-      - '5432:5432'
+    # No published port, deliberately. Docker writes its own nat chain that ufw never
+    # evaluates, so `5432:5432` here would be reachable from the internet regardless
+    # of firewall rules. The app reaches this over the compose network; nothing else
+    # should reach it at all.
     networks:
       - p0ntus
 
-  app:
+  p0ntus:
+    container_name: p0ntus
     build: .
-    restart: unless-stopped
+    restart: always
     depends_on:
-      db:
+      p0ntus-db:
         condition: service_healthy
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgres://p0ntus:${POSTGRES_PASSWORD}@db:5432/p0ntus
+      # Interpolated rather than written literally so the password never lives in the
+      # repo. The host part must match the service name above - that coupling is what
+      # broke a deploy once already.
+      DATABASE_URL: postgres://p0ntus:${POSTGRES_PASSWORD}@p0ntus-db:5432/p0ntus
       UPLOAD_DIR: /data/uploads
-    ports:
-      - '3000:3000'
+    # No published port either. nginx-proxy-manager is the only thing that faces the
+    # internet and forwards to this container over the shared network.
     volumes:
-      - p0ntus-uploads:/data/uploads
+      - ./uploads:/data/uploads
     networks:
       - p0ntus
 
-volumes:
-  p0ntus-db:
-  p0ntus-uploads:
-
+# The network is external: nginx-proxy-manager creates it and both stacks join it.
+# Declaring it external here stops compose from silently creating a second, private
+# network of the same name - which would leave the proxy unable to resolve `p0ntus`
+# and the site 502-ing with no obvious cause.
 networks:
   p0ntus:
+    external: true
