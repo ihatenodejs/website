@@ -205,6 +205,7 @@ export const MEMBERS_PAGE_SIZE = 20
 export const COMMENTS_PAGE_SIZE = 20
 export const ADMIN_PAGE_SIZE = 20
 export const MAX_SEARCH_LENGTH = 80
+export const AGENT_EXPORT_MAX_BYTES = 10 * 1024 * 1024
 
 export type SearchParse<T> = {
   value: T

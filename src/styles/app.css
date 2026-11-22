@@ -1119,13 +1119,15 @@ a.contact-item:hover {
   overflow-x: auto;
 }
 
-.member-table {
+.member-table,
+.model-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 10px;
 }
 
-.member-table th {
+.member-table th,
+.model-table thead th {
   text-align: left;
   background: var(--panel-alt);
   color: var(--muted);
@@ -1136,18 +1138,33 @@ a.contact-item:hover {
   border-bottom: 1px solid var(--line);
 }
 
-.member-table td {
+.member-table td,
+.model-table td {
   padding: 6px 5px;
   border-bottom: 1px dotted var(--line);
   vertical-align: middle;
 }
 
-.member-table tr:last-child td {
+.model-table tbody th {
+  padding: 6px 5px;
+  border-bottom: 1px dotted var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.member-table tr:last-child td,
+.model-table tr:last-child td,
+.model-table tr:last-child th {
   border-bottom: 0;
 }
 
-.member-table tbody tr:hover {
+.member-table tbody tr:hover,
+.model-table tbody tr:hover {
   background: var(--panel-alt);
+}
+
+.model-table thead th:not(:first-child) {
+  text-align: right;
 }
 
 .member-cell {
@@ -1194,8 +1211,343 @@ a.contact-item:hover {
   min-width: 0;
 }
 
+.account-connections {
+  max-width: 760px;
+}
+
+.account-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 10px;
+  align-items: start;
+}
+
+.account-settings {
+  max-width: 560px;
+}
+
 .admin-settings {
   max-width: 560px;
+}
+
+.connection-steps {
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.connection-steps code {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: var(--panel-alt);
+  padding: 1px 4px;
+  font-size: 9.5px;
+  overflow-wrap: anywhere;
+}
+
+/* Model table and icon picker */
+
+.model-table {
+  margin-top: 8px;
+}
+
+.model-cell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.model-cell-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.model-cell-name {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.model-number {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.model-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.model-edit-row > td {
+  background: var(--panel-alt);
+}
+
+.model-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.model-icon-fallback {
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--control-border);
+  background: var(--panel-alt);
+  color: var(--ink);
+  font-weight: bold;
+}
+
+.model-icon-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.model-icon-picker legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 9.5px;
+  font-weight: bold;
+  color: var(--ink);
+}
+
+.model-icon-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  padding: 4px;
+  font-size: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.model-icon-option:hover {
+  border-color: var(--control-border);
+}
+
+.model-icon-option:has(input:checked) {
+  border-color: var(--accent-ink);
+  background: var(--panel-alt);
+}
+
+.model-icon-option:focus-within {
+  outline: 2px solid var(--focus-ink);
+  outline-offset: 2px;
+}
+
+.model-icon-option input {
+  flex: none;
+}
+
+/* Model groups */
+
+.model-group-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.model-group-row {
+  display: grid;
+  gap: 5px;
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--line);
+  min-width: 0;
+}
+
+.model-group-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.model-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.model-group-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.model-group-alias {
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.model-group-members {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.model-group-member {
+  border: 1px solid var(--line);
+  background: var(--panel-alt);
+  padding: 1px 5px;
+  font-size: 8.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.model-group-editor {
+  max-width: 620px;
+}
+
+.model-group-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.member-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.member-picker-list {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.member-picker legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 9.5px;
+  font-weight: bold;
+  color: var(--ink);
+}
+
+.member-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-bottom: 1px dotted var(--line);
+  font-size: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.member-option:last-child {
+  border-bottom: 0;
+}
+
+.member-option input {
+  flex: none;
+}
+
+.member-option-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.member-option-tokens {
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.member-option-note {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.member-option.is-disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* Model usage card */
+
+.model-ranking-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.model-ranking-head .field {
+  min-width: 140px;
+}
+
+.model-ranking {
+  list-style: none;
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+}
+
+.model-ranking li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rank icon name value'
+    'rank icon bar bar';
+  gap: 2px 6px;
+  align-items: center;
+  font-size: 10px;
+}
+
+.model-rank {
+  grid-area: rank;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.model-ranking .model-icon {
+  grid-area: icon;
+}
+
+.model-name {
+  grid-area: name;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.model-value {
+  grid-area: value;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.model-bar-track {
+  grid-area: bar;
+  display: block;
+  border: 1px solid var(--control-border);
+  background: var(--panel-alt);
+  height: 8px;
+}
+
+.model-bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, var(--title-from), var(--title-to));
+  border-right: 1px solid var(--title-edge);
 }
 
 /* Every route shares one canvas and one set of column tracks. The three-column
@@ -1214,6 +1566,15 @@ a.contact-item:hover {
   .account-grid {
     grid-template-columns: 360px 340px minmax(0, 1fr);
     grid-template-areas: 'profile contact side';
+  }
+
+  .account-grid-profile {
+    grid-template-columns: 360px 340px;
+    grid-template-areas: 'profile contact';
+  }
+
+  .account-groups {
+    grid-template-columns: 360px minmax(0, 1fr);
   }
 }
 
@@ -1274,6 +1635,7 @@ a.contact-item:hover {
 
 /* Admin */
 
+.account-pages,
 .admin-pages,
 .admin-tabs {
   display: flex;
@@ -1281,6 +1643,7 @@ a.contact-item:hover {
   flex-wrap: wrap;
 }
 
+.account-pages,
 .admin-pages {
   margin: 0 0 10px;
   border-bottom: 1px solid var(--chrome-line);
@@ -1291,6 +1654,7 @@ a.contact-item:hover {
   border-bottom: 1px solid var(--line);
 }
 
+.account-pages a,
 .admin-pages a,
 .admin-tabs a {
   padding: 7px 10px;
@@ -1300,6 +1664,7 @@ a.contact-item:hover {
   font-size: 10px;
 }
 
+.account-pages a,
 .admin-pages a {
   color: var(--accent);
 }
@@ -1308,6 +1673,7 @@ a.contact-item:hover {
   color: var(--accent-ink);
 }
 
+.account-pages a:hover,
 .admin-pages a:hover {
   background: var(--chrome-hi);
   color: var(--chrome-text);
@@ -1317,6 +1683,7 @@ a.contact-item:hover {
   background: var(--panel-alt);
 }
 
+.account-pages a.active,
 .admin-pages a.active,
 .admin-tabs a.active {
   border-color: var(--control-border);
@@ -1493,6 +1860,13 @@ a.contact-item:hover {
       'side';
   }
 
+  .account-grid-profile {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'profile'
+      'contact';
+  }
+
   .page-narrow {
     width: calc(100% - 32px);
   }
@@ -1544,37 +1918,62 @@ a.contact-item:hover {
     flex-direction: column;
   }
 
-  .member-table thead {
+  .member-table thead,
+  .model-table thead {
     display: none;
   }
 
   .member-table,
   .member-table tbody,
   .member-table tr,
-  .member-table td {
+  .member-table td,
+  .model-table,
+  .model-table tbody,
+  .model-table tr,
+  .model-table td,
+  .model-table tbody th {
     display: block;
     width: 100%;
   }
 
-  .member-table tr {
+  .member-table tr,
+  .model-table tr {
     border-bottom: 1px dotted var(--line);
     padding: 6px 0;
   }
 
-  .member-table td {
+  .member-table td,
+  .model-table td,
+  .model-table tbody th {
     border: 0;
     padding: 3px 0;
     display: flex;
     justify-content: space-between;
     gap: 10px;
+    text-align: left;
   }
 
-  .member-table td::before {
+  .model-table .model-number,
+  .model-table .model-actions {
+    text-align: left;
+    justify-content: space-between;
+  }
+
+  .model-table .model-cell {
+    justify-content: flex-start;
+  }
+
+  .member-table td::before,
+  .model-table td::before {
     content: attr(data-label);
     color: var(--muted);
     font-size: 8.5px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  .model-edit-row > td {
+    display: block;
   }
 
   .site-footer .canvas {
@@ -1594,6 +1993,7 @@ a.contact-item:hover {
   .utility-mark,
   .link-button,
   .site-footer nav a,
+  .account-pages a,
   .admin-pages a,
   .admin-tabs a,
   .breadcrumb a,
@@ -1631,6 +2031,38 @@ a.contact-item:hover {
 
   .contact-grid {
     grid-template-columns: 1fr;
+  }
+
+  .model-icon-option {
+    min-height: 44px;
+  }
+
+  .model-ranking-head {
+    flex-wrap: wrap;
+  }
+
+  .model-ranking-head .field {
+    width: 100%;
+  }
+
+  .model-ranking li {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'rank icon name'
+      'rank icon value'
+      'rank icon bar';
+  }
+
+  .member-option {
+    min-height: 44px;
+  }
+
+  .member-picker-list {
+    max-height: 300px;
+  }
+
+  .model-group-actions {
+    margin-left: 0;
   }
 }
 

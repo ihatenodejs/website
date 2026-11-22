@@ -178,7 +178,9 @@ function TermsRoute() {
         <Panel title="9. Ending use">
           <p>
             You can delete your account from your{' '}
-            <Link to="/account">account page</Link>. Deletion is permanent. It
+            <Link to="/account" search={{ tab: 'profile' }}>
+              account page
+            </Link>. Deletion is permanent. It
             removes your profile, sessions, comments you wrote or received, and
             any avatar you uploaded. The home profile cannot be deleted.
           </p>

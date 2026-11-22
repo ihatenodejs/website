@@ -3,6 +3,7 @@ import { Component, Suspense, useState, type ReactNode } from 'react'
 import { Avatar } from './Avatar'
 import { ContactIcon } from './ContactIcon'
 import { FormMessage, type FormResult } from './FormMessage'
+import { ModelRanking } from './ModelRanking'
 import { Panel } from './Panel'
 import { contactDisplays, type ContactDisplay } from '~/lib/contacts'
 import { formatDate, formatDateTime } from '~/lib/format'
@@ -259,7 +260,9 @@ export function ProfilePage({
               title="About me"
               hint={
                 viewer?.id === profile.userId ? (
-                  <Link to="/account">Edit</Link>
+                  <Link to="/account" search={{ tab: 'profile' }}>
+                    Edit
+                  </Link>
                 ) : null
               }
             >
@@ -275,12 +278,16 @@ export function ProfilePage({
                   {viewer?.id === profile.userId ? (
                     <>
                       {' '}
-                      <Link to="/account">Add one from your account.</Link>
+                      <Link to="/account" search={{ tab: 'profile' }}>
+                        Add one from your account.
+                      </Link>
                     </>
                   ) : null}
                 </p>
               )}
             </Panel>
+
+            <ModelRanking models={profile.modelRanking} />
           </div>
 
           <div className="profile-comments">

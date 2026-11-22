@@ -13,7 +13,7 @@ import { signInFn } from '~/server/auth.functions'
 export const Route = createFileRoute('/login')({
   ssr: true,
   beforeLoad: ({ context }) => {
-    if (context.session) throw redirect({ to: '/account' })
+    if (context.session) throw redirect({ to: '/account', search: { tab: 'profile' } })
   },
   head: () => ({
     meta: [{ title: 'Log in | p0ntus' }],
@@ -56,7 +56,7 @@ function LoginRoute() {
             setResult(next)
             if (next.ok) {
               await router.invalidate()
-              await router.navigate({ to: '/account' })
+              await router.navigate({ to: '/account', search: { tab: 'profile' } })
             }
           }}
         >

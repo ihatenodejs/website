@@ -12,3 +12,15 @@ export function messageFromAuthError(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message
   return fallback
 }
+
+export function databaseErrorCode(error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string'
+  ) {
+    return error.code
+  }
+  return null
+}

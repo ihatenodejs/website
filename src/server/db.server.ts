@@ -12,3 +12,4 @@ export const db = drizzle(pool, { schema })
 
 export const BOOTSTRAP_LOCK_KEY = 724_101
 export const ADMIN_LOCK_KEY = 724_102
+export const AGENT_SYNC_LOCK_KEY = 724_103

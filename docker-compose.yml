@@ -59,6 +59,8 @@ services:
     # internet and forwards to this container over the shared network.
     volumes:
       - ./uploads:/data/uploads
+    ports:
+      - "3000:3000"
     networks:
       - p0ntus
 

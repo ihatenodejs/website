@@ -14,7 +14,7 @@ import { signUpFn, getPublicConfigFn } from '~/server/auth.functions'
 export const Route = createFileRoute('/signup')({
   ssr: true,
   beforeLoad: ({ context }) => {
-    if (context.session) throw redirect({ to: '/account' })
+    if (context.session) throw redirect({ to: '/account', search: { tab: 'profile' } })
   },
   loader: async () => ({
     config: await getPublicConfigFn(),
@@ -98,7 +98,7 @@ function SignupRoute() {
             setResult(next)
             if (next.ok) {
               await router.invalidate()
-              await router.navigate({ to: '/account' })
+              await router.navigate({ to: '/account', search: { tab: 'profile' } })
             } else {
               setToken(null)
               setResetSignal((value) => value + 1)

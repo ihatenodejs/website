@@ -3,9 +3,10 @@ import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { ADMIN_LOCK_KEY, db } from './db.server'
 import { env } from './env.server'
-import type { ActionResult } from './errors.server'
+import { databaseErrorCode, type ActionResult } from './errors.server'
 import { deleteUploadedAvatar } from './storage.server'
 import { comments, profiles, user } from './schema'
+import { getConnectionSummary, getPublicModelRanking } from './connections.server'
 import { getCurrentUser } from './session.server'
 import { getSiteTheme } from './settings.server'
 import {
@@ -21,6 +22,14 @@ import {
 import type { ContactValues } from '~/lib/contacts'
 import { isTheme, type Theme } from '~/lib/theme'
 
+export type ProfileModelUsage = {
+  model: string
+  displayName: string
+  iconKey: string | null
+  tokens: number
+  costMicros: number
+}
+
 export type PublicProfile = {
   userId: string
   username: string
@@ -32,6 +41,7 @@ export type PublicProfile = {
   theme: string
   createdAt: string
   isHome: boolean
+  modelRanking: ProfileModelUsage[] | null
 }
 
 class AccountPolicyError extends Error {
@@ -39,18 +49,6 @@ class AccountPolicyError extends Error {
     super(reason)
     this.name = 'AccountPolicyError'
   }
-}
-
-function databaseErrorCode(error: unknown) {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    typeof error.code === 'string'
-  ) {
-    return error.code
-  }
-  return null
 }
 
 function toPublicProfile(row: typeof profiles.$inferSelect): PublicProfile {
@@ -72,6 +70,7 @@ function toPublicProfile(row: typeof profiles.$inferSelect): PublicProfile {
     theme: row.theme,
     createdAt: row.createdAt.toISOString(),
     isHome: row.username === env.HOME_USERNAME,
+    modelRanking: null,
   }
 }
 
@@ -96,7 +95,13 @@ export const getHomeProfileFn = createServerFn({ method: 'GET' }).handler(
 
     const row = await findProfile(env.HOME_USERNAME)
     if (row) {
-      return { state: 'ok' as const, profile: toPublicProfile(row) }
+      return {
+        state: 'ok' as const,
+        profile: {
+          ...toPublicProfile(row),
+          modelRanking: await getPublicModelRanking(row.userId),
+        },
+      }
     }
 
     return {
@@ -112,7 +117,11 @@ export const getProfileFn = createServerFn({ method: 'GET' })
     const username = data.username.trim().toLowerCase()
     if (!/^[a-z0-9_]{3,24}$/.test(username)) return null
     const row = await findProfile(username)
-    return row ? toPublicProfile(row) : null
+    if (!row) return null
+    return {
+      ...toPublicProfile(row),
+      modelRanking: await getPublicModelRanking(row.userId),
+    }
   })
 
 export const searchMembersFn = createServerFn({ method: 'GET' })
@@ -322,6 +331,7 @@ export const getAccountDataFn = createServerFn({ method: 'GET' }).handler(
         ? current.profile.preferredTheme
         : null,
       profile: toPublicProfile(current.profile),
+      connections: await getConnectionSummary(current.id),
       comments: rows.map((row) => ({
         ...row,
         createdAt: row.createdAt.toISOString(),

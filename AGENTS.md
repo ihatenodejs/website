@@ -64,11 +64,13 @@ cp .env.example .env            # fill secrets; each var documented in .env.exam
 bun install
 bun run dev                     # vite dev, http://localhost:3000, needs Postgres on 127.0.0.1:5432
 bun run typecheck               # tsc --noEmit
-bun run db:generate             # drizzle-kit generate → drizzle/*.sql
+bun run db:generate --name <change>  # drizzle-kit generate → drizzle/000N_<change>.sql
 bun run db:migrate              # bun scripts/migrate.ts (applies drizzle/ to DATABASE_URL)
 bun run build && bun run start  # vite build → bun .output/server/index.mjs
 docker compose up --build       # app + postgres:17-alpine; migrations run on container start
 ```
+
+**Always pass `--name` to `db:generate`** (`bun run db:generate --name agent_usage`). Drizzle's generated names (`0001_next_omega_flight`) say nothing about the change. Never hand-rename a generated migration: `drizzle/meta/_journal.json` and the snapshot keep the generated tag, so the file and the journal drift apart. Regenerate with a name instead.
 
 Setup, secrets, and the security/behavior invariants are documented in `README.md` — consult it instead of restating them in code comments or PRs.
 

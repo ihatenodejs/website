@@ -28,7 +28,7 @@ export function SiteHeader({ session }: { session?: SessionSummary | null }) {
                 <>
                   <span>
                     Signed in as{' '}
-                    <Link to="/account">
+                    <Link to="/account" search={{ tab: 'profile' }}>
                       {session.username
                         ? `@${session.username}`
                         : session.displayName}
@@ -86,7 +86,9 @@ export function SiteHeader({ session }: { session?: SessionSummary | null }) {
             <Link to="/">Home</Link>
             <Link to="/members">Members</Link>
             {session === undefined ? null : session ? (
-              <Link to="/account">My account</Link>
+              <Link to="/account" search={{ tab: 'profile' }}>
+                My account
+              </Link>
             ) : (
               <Link to="/login">Log in</Link>
             )}

@@ -18,6 +18,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiAgentExportRouteImport } from './routes/api/agent-export'
 import { Route as ApiAvatarUploadRouteImport } from './routes/api/avatar-upload'
 import { Route as UUsernameRouteImport } from './routes/u/$username'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -68,6 +69,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentExportRoute = ApiAgentExportRouteImport.update({
+  id: '/api/agent-export',
+  path: '/api/agent-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAvatarUploadRoute = ApiAvatarUploadRouteImport.update({
   id: '/api/avatar-upload',
   path: '/api/avatar-upload',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/api/agent-export': typeof ApiAgentExportRoute
   '/api/avatar-upload': typeof ApiAvatarUploadRoute
   '/u/$username': typeof UUsernameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/api/agent-export': typeof ApiAgentExportRoute
   '/api/avatar-upload': typeof ApiAvatarUploadRoute
   '/u/$username': typeof UUsernameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/api/agent-export': typeof ApiAgentExportRoute
   '/api/avatar-upload': typeof ApiAvatarUploadRoute
   '/u/$username': typeof UUsernameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/terms'
+    | '/api/agent-export'
     | '/api/avatar-upload'
     | '/u/$username'
     | '/api/auth/$'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/terms'
+    | '/api/agent-export'
     | '/api/avatar-upload'
     | '/u/$username'
     | '/api/auth/$'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/terms'
+    | '/api/agent-export'
     | '/api/avatar-upload'
     | '/u/$username'
     | '/api/auth/$'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   SetupRoute: typeof SetupRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
+  ApiAgentExportRoute: typeof ApiAgentExportRoute
   ApiAvatarUploadRoute: typeof ApiAvatarUploadRoute
   UUsernameRoute: typeof UUsernameRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/agent-export': {
+      id: '/api/agent-export'
+      path: '/api/agent-export'
+      fullPath: '/api/agent-export'
+      preLoaderRoute: typeof ApiAgentExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/avatar-upload': {
       id: '/api/avatar-upload'
       path: '/api/avatar-upload'
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   SetupRoute: SetupRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
+  ApiAgentExportRoute: ApiAgentExportRoute,
   ApiAvatarUploadRoute: ApiAvatarUploadRoute,
   UUsernameRoute: UUsernameRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

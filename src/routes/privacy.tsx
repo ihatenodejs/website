@@ -24,7 +24,7 @@ function PrivacyRoute() {
       <div className="canvas page page-narrow">
         <h1>Privacy policy</h1>
         <p className="page-intro">
-          Last updated 17 November 2026. p0ntus is a personal profile site and
+          Last updated 20 November 2026. p0ntus is a personal profile site and
           member directory run by Aidan Honor. This policy explains what
           personal information the site collects, why it is collected, who can
           see it, and the choices you have.
@@ -55,6 +55,14 @@ function PrivacyRoute() {
             <strong>Comments.</strong> When you post a comment, I collect the
             text, the profile it belongs to, the time it was posted, and whether
             it is waiting for review or has been approved.
+          </p>
+          <p>
+            <strong>Connected usage.</strong> If you upload an agent-exporter
+            JSON file, I store the provider, date, model name, token counts, and
+            cost for each model and day it contains. The file itself is not
+            kept. If you create model groups, I also store each group's alias
+            and the model names in it. The synced rows and groups are tied to
+            your account.
           </p>
           <p>
             <strong>Sign-in and security information.</strong> When you sign in,
@@ -88,6 +96,14 @@ function PrivacyRoute() {
             private or sensitive details in your profile or comments.
           </p>
           <p>
+            If you enable the model ranking, the names, icons, and the token or
+            cost values of your top five models appear on your public profile.
+            A model group you create is published under its alias, with the
+            totals of its members added together.
+            Your totals, your provider list, and the rest of the model list stay
+            private to you. The ranking is off until you turn it on.
+          </p>
+          <p>
             If you use an image hosted on another site as your avatar, visitors'
             browsers load it from that host. The host can see visitors' IP
             addresses and browser information. Avatars uploaded to this site are
@@ -99,7 +115,10 @@ function PrivacyRoute() {
           <p>I use personal information to:</p>
           <ul>
             <li>create and run your account;</li>
-            <li>show your profile and approved comments;</li>
+            <li>
+              show your profile, approved comments, and model ranking when
+              enabled;
+            </li>
             <li>review comments before they are published;</li>
             <li>keep the site secure, prevent abuse, and fix problems;</li>
             <li>answer your messages and privacy requests;</li>
@@ -207,7 +226,9 @@ function PrivacyRoute() {
         <Panel title="9. Your choices and rights">
           <p>
             You can view and change your profile from your{' '}
-            <Link to="/account">account page</Link>. You can delete your
+            <Link to="/account" search={{ tab: 'profile' }}>
+              account page
+            </Link>. You can delete your
             comments there. You can also delete your account there, which
             removes the information described above.
           </p>

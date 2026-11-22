@@ -5,8 +5,14 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
+  agentConnections,
+  agentSyncRuns,
+  agentUsage,
   appState,
   comments,
+  modelGroupMembers,
+  modelGroups,
+  modelOverrides,
   profiles,
   session,
   siteSettings,
@@ -40,7 +46,7 @@ suite('PostgreSQL persistence rules', () => {
 
   beforeEach(async () => {
     await pool.query(
-      'TRUNCATE app_state, comments, profiles, session, site_settings, account, verification, "user" CASCADE',
+      'TRUNCATE agent_connections, agent_sync_runs, agent_usage, model_group_members, model_groups, model_overrides, app_state, comments, profiles, session, site_settings, account, verification, "user" CASCADE',
     )
   })
 
@@ -177,5 +183,161 @@ suite('PostgreSQL persistence rules', () => {
       .catch((error) => error)
     expect(errorCode(failure)).toBe('23503')
     expect(await db.select().from(user)).toHaveLength(1)
+  })
+
+  it('rejects negative token counts and unknown run statuses in SQL', async () => {
+    const id = await createUser('usage', 'usage_user')
+
+    const negative = await db
+      .insert(agentUsage)
+      .values({
+        userId: id,
+        provider: 'opencode',
+        usageDate: '2026-11-18',
+        model: 'claude-sonnet-4',
+        inputTokens: -1,
+        outputTokens: 0,
+        cacheCreationTokens: 0,
+        cacheReadTokens: 0,
+        costMicros: 0,
+      })
+      .catch((error) => error)
+    expect(errorCode(negative)).toBe('23514')
+
+    const status = await db
+      .insert(agentSyncRuns)
+      .values({
+        id: randomUUID(),
+        userId: id,
+        status: 'canceled',
+        fileName: 'agent-usage.json',
+      })
+      .catch((error) => error)
+    expect(errorCode(status)).toBe('23514')
+  })
+
+  it('keeps one usage row per user, provider, date, and model on re-upload', async () => {
+    const id = await createUser('upsert', 'upsert_user')
+    const row = {
+      userId: id,
+      provider: 'opencode',
+      usageDate: '2026-11-18',
+      model: 'claude-sonnet-4',
+      inputTokens: 10,
+      outputTokens: 1,
+      cacheCreationTokens: 2,
+      cacheReadTokens: 3,
+      costMicros: 250_000,
+    }
+
+    for (const inputTokens of [10, 25]) {
+      await db
+        .insert(agentUsage)
+        .values({ ...row, inputTokens })
+        .onConflictDoUpdate({
+          target: [
+            agentUsage.userId,
+            agentUsage.provider,
+            agentUsage.usageDate,
+            agentUsage.model,
+          ],
+          set: { inputTokens },
+        })
+    }
+
+    const rows = await db.select().from(agentUsage)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.inputTokens).toBe(25)
+  })
+
+  it('cascades usage, overrides, connections, and runs with the auth user', async () => {
+    const id = await createUser('cascade', 'cascade_user')
+    await db.insert(agentUsage).values({
+      userId: id,
+      provider: 'opencode',
+      usageDate: '2026-11-18',
+      model: 'claude-sonnet-4',
+      inputTokens: 1,
+      outputTokens: 1,
+      cacheCreationTokens: 0,
+      cacheReadTokens: 0,
+      costMicros: 1,
+    })
+    await db
+      .insert(modelOverrides)
+      .values({ userId: id, model: 'claude-sonnet-4', displayName: 'Sonnet' })
+    await db.insert(agentConnections).values({ userId: id, showModels: true })
+    await db.insert(agentSyncRuns).values({
+      id: randomUUID(),
+      userId: id,
+      status: 'complete',
+      fileName: 'agent-usage.json',
+    })
+
+    await db.delete(user).where(eq(user.id, id))
+    expect(await db.select().from(agentUsage)).toHaveLength(0)
+    expect(await db.select().from(modelOverrides)).toHaveLength(0)
+    expect(await db.select().from(agentConnections)).toHaveLength(0)
+    expect(await db.select().from(agentSyncRuns)).toHaveLength(0)
+  })
+  it('keeps one group per alias and one group per model', async () => {
+    const id = await createUser('groups', 'groups_user')
+    const first = randomUUID()
+    const second = randomUUID()
+
+    await db.insert(modelGroups).values({
+      id: first,
+      userId: id,
+      alias: 'deepseek-v4.1-flash',
+    })
+    await db.insert(modelGroups).values({
+      id: second,
+      userId: id,
+      alias: 'gemini-flash',
+    })
+    await db.insert(modelGroupMembers).values({
+      userId: id,
+      groupId: first,
+      model: 'deepseek/deepseek-v4.1-flash',
+    })
+
+    const duplicateAlias = await db
+      .insert(modelGroups)
+      .values({ id: randomUUID(), userId: id, alias: 'deepseek-v4.1-flash' })
+      .catch((error) => error)
+    expect(errorCode(duplicateAlias)).toBe('23505')
+
+    const duplicateModel = await db
+      .insert(modelGroupMembers)
+      .values({
+        userId: id,
+        groupId: second,
+        model: 'deepseek/deepseek-v4.1-flash',
+      })
+      .catch((error) => error)
+    expect(errorCode(duplicateModel)).toBe('23505')
+
+    const emptyAlias = await db
+      .insert(modelGroups)
+      .values({ id: randomUUID(), userId: id, alias: '' })
+      .catch((error) => error)
+    expect(errorCode(emptyAlias)).toBe('23514')
+  })
+
+  it('cascades model groups and their members with the auth user', async () => {
+    const id = await createUser('groupcascade', 'group_cascade_user')
+    const groupId = randomUUID()
+    await db
+      .insert(modelGroups)
+      .values({ id: groupId, userId: id, alias: 'deepseek-v4.1-flash' })
+    await db.insert(modelGroupMembers).values({
+      userId: id,
+      groupId,
+      model: 'deepseek/deepseek-v4.1-flash',
+    })
+
+    await db.delete(user).where(eq(user.id, id))
+    expect(await db.select().from(modelGroups)).toHaveLength(0)
+    expect(await db.select().from(modelGroupMembers)).toHaveLength(0)
   })
 })
