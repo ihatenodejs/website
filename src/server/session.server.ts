@@ -10,6 +10,16 @@ export type ProfileRecord = {
   displayName: string
   tagline: string
   bio: string
+  profileLink: string
+  detailStatus: string
+  hereFor: string
+  hometown: string
+  ethnicity: string
+  zodiac: string
+  smoke: string
+  drink: string
+  education: string
+  occupation: string
   contactDiscord: string
   contactX: string
   contactEmail: string

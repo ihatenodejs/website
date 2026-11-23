@@ -1,5 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
+import { AccountDetailsPanel } from './AccountDetailsPanel'
+import { AccountSchoolsPanel } from './AccountSchoolsPanel'
 import { Avatar } from './Avatar'
 import { FormMessage, type FormResult } from './FormMessage'
 import { Panel } from './Panel'
@@ -276,7 +278,6 @@ export function AccountProfileTab({
             <FormMessage result={contactsResult} />
           </form>
         </Panel>
-
       </div>
 
       {isAdmin ? (
@@ -342,6 +343,11 @@ export function AccountProfileTab({
           </Panel>
         </div>
       ) : null}
+
+      <div className="account-extras">
+        <AccountDetailsPanel profile={profile} isAdmin={isAdmin} />
+        <AccountSchoolsPanel profile={profile} />
+      </div>
     </div>
   )
 }

@@ -1,15 +1,16 @@
 import { Await, Link } from '@tanstack/react-router'
 import { Component, Suspense, useState, type ReactNode } from 'react'
 import { Avatar } from './Avatar'
+import { CommentDialog } from './CommentDialog'
 import { ContactIcon } from './ContactIcon'
-import { FormMessage, type FormResult } from './FormMessage'
+import { EmoticonText } from './EmoticonText'
 import { ModelRanking } from './ModelRanking'
 import { Panel } from './Panel'
+import { StatusDialog } from './StatusDialog'
 import { contactDisplays, type ContactDisplay } from '~/lib/contacts'
-import { formatDate, formatDateTime } from '~/lib/format'
-import { runAction } from '~/lib/run-action'
+import { EMOTICON_BY_SHORTCUT } from '~/lib/emoticons'
+import { formatDate, formatDateTime, formatRelativeTime } from '~/lib/format'
 import { isTheme } from '~/lib/theme'
-import { postCommentFn } from '~/server/profiles.functions'
 import type {
   ApprovedCommentsResult,
   PublicProfile,
@@ -40,67 +41,6 @@ class CommentBoundary extends Component<
     }
     return this.props.children
   }
-}
-
-function CommentComposer({
-  targetUserId,
-  viewer,
-}: {
-  targetUserId: string
-  viewer: Viewer
-}) {
-  const [body, setBody] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<FormResult>(null)
-
-  if (!viewer) {
-    return (
-      <p className="comment-signin">
-        <Link to="/login">Log in</Link> to leave a comment. New comments appear
-        after an administrator reviews them.
-      </p>
-    )
-  }
-
-  return (
-    <form
-      className="comment-form"
-      onSubmit={async (event) => {
-        event.preventDefault()
-        setBusy(true)
-        setResult(null)
-        const next = await runAction(
-          () =>
-            postCommentFn({
-              data: { targetUserId, body },
-            }),
-          'The comment could not be submitted. Try again.',
-        )
-        setBusy(false)
-        setResult(next)
-        if (next.ok) setBody('')
-      }}
-    >
-      <label className="field">
-        <span>Add a comment</span>
-        <textarea
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          maxLength={500}
-          rows={3}
-          required
-          placeholder="Plain text, up to 500 characters"
-        />
-      </label>
-      <div className="form-row">
-        <button type="submit" className="button" disabled={busy}>
-          {busy ? 'Sending…' : 'Submit for review'}
-        </button>
-        <span className="field-note">{body.length}/500</span>
-      </div>
-      <FormMessage result={result} />
-    </form>
-  )
 }
 
 function ContactCard({ contact }: { contact: ContactDisplay }) {
@@ -141,6 +81,182 @@ function ContactCard({ contact }: { contact: ContactDisplay }) {
   )
 }
 
+function displayLink(value: string) {
+  try {
+    const url = new URL(value)
+    return `${url.host}${url.pathname === '/' ? '' : url.pathname}`
+  } catch {
+    return value
+  }
+}
+
+function ProfileUrl({ profile }: { profile: PublicProfile }) {
+  return (
+    <Link
+      to="/u/$username"
+      params={{ username: profile.username }}
+      className="masthead-url-link"
+    >
+      {displayLink(profile.profileUrl)}
+    </Link>
+  )
+}
+
+function MoodLine({
+  mood,
+  moodEmoticon,
+}: {
+  mood: string
+  moodEmoticon: string
+}) {
+  if (!mood && !moodEmoticon) return null
+  if (!moodEmoticon) return <EmoticonText text={mood} />
+  const emoticon = EMOTICON_BY_SHORTCUT.get(moodEmoticon.toLowerCase())
+  return (
+    <>
+      {emoticon ? (
+        <img
+          className="emoticon"
+          src={emoticon.src}
+          alt=""
+          title={emoticon.name}
+          width={19}
+          height={19}
+        />
+      ) : null}
+      {mood ? <> {mood}</> : null}
+    </>
+  )
+}
+
+function StatusCard({
+  profile,
+  canAdd,
+  onAdd,
+}: {
+  profile: PublicProfile
+  canAdd: boolean
+  onAdd: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const statuses = expanded ? profile.statuses : profile.statuses.slice(0, 5)
+
+  return (
+    <div id="status-and-mood">
+      <Panel
+        title={`${profile.displayName}'s Status and Mood`}
+        hint={
+          canAdd ? (
+            <button type="button" className="panel-link" onClick={onAdd}>
+              add status
+            </button>
+          ) : null
+        }
+      >
+        {profile.statuses.length === 0 ? (
+          <p className="empty">No status posts yet.</p>
+        ) : (
+          <>
+            <ul className="status-list">
+              {statuses.map((status) => (
+                <li key={status.id} className="status-post">
+                  <p className="status-text">
+                    <span className="status-author">{profile.displayName}</span>{' '}
+                    <EmoticonText text={status.body} />
+                  </p>
+                  {status.mood || status.moodEmoticon ? (
+                    <p className="status-mood">
+                      Mood:{' '}
+                      <MoodLine
+                        mood={status.mood}
+                        moodEmoticon={status.moodEmoticon}
+                      />
+                    </p>
+                  ) : null}
+                  <p className="status-time">
+                    <time
+                      dateTime={status.createdAt}
+                      title={formatDateTime(status.createdAt)}
+                      suppressHydrationWarning
+                    >
+                      Posted {formatRelativeTime(status.createdAt)}
+                    </time>
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {profile.statuses.length > 5 ? (
+              <div className="status-more">
+                <button
+                  type="button"
+                  className="panel-link"
+                  onClick={() => setExpanded((open) => !open)}
+                >
+                  {expanded ? 'Show fewer' : 'View More'}
+                </button>
+              </div>
+            ) : null}
+          </>
+        )}
+      </Panel>
+    </div>
+  )
+}
+
+function SchoolsCard({ profile }: { profile: PublicProfile }) {
+  if (profile.schools.length === 0) return null
+
+  return (
+    <Panel title="Schools">
+      <ul className="school-list">
+        {profile.schools.map((school) => {
+          const years =
+            school.startYear && school.endYear
+              ? `${school.startYear} to ${school.endYear}`
+              : school.startYear
+                ? `${school.startYear}`
+                : school.endYear
+                  ? `${school.endYear}`
+                  : ''
+          return (
+            <li key={school.id} className="school">
+              <div className="school-head">
+                <span className="school-name">{school.name}</span>
+                {years ? <span className="school-years">{years}</span> : null}
+              </div>
+              {school.location ? (
+                <p className="school-location">{school.location}</p>
+              ) : null}
+              {school.graduatedYear ? (
+                <p>
+                  <span className="school-label">Graduated:</span>{' '}
+                  {school.graduatedYear}
+                </p>
+              ) : null}
+              {school.studentStatus ? (
+                <p>
+                  <span className="school-label">Student status:</span>{' '}
+                  {school.studentStatus}
+                </p>
+              ) : null}
+              {school.major ? (
+                <p>
+                  <span className="school-label">Major:</span> {school.major}
+                </p>
+              ) : null}
+              {school.clubs ? (
+                <p>
+                  <span className="school-label">Clubs:</span> {school.clubs}
+                </p>
+              ) : null}
+            </li>
+          )
+        })}
+      </ul>
+    </Panel>
+  )
+}
+
 export function ProfilePage({
   profile,
   commentsPromise,
@@ -160,6 +276,23 @@ export function ProfilePage({
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean)
+  const [commentOpen, setCommentOpen] = useState(false)
+  const [statusOpen, setStatusOpen] = useState(false)
+  const [actionNote, setActionNote] = useState('')
+  const latest = profile.statuses[0] ?? null
+  const isOwner = viewer?.id === profile.userId
+
+  const detailRows = [
+    ['Status', profile.details.detailStatus],
+    ['Here for', profile.details.hereFor],
+    ['Hometown', profile.details.hometown],
+    ['Ethnicity', profile.details.ethnicity],
+    ['Zodiac sign', profile.details.zodiac],
+    ['Smoke', profile.details.smoke],
+    ['Drink', profile.details.drink],
+    ['Education', profile.details.education],
+    ['Occupation', profile.details.occupation],
+  ].filter((entry): entry is [string, string] => entry[1] !== '')
 
   const commentPageLink = (targetPage: number, label: string) =>
     profile.isHome ? (
@@ -190,31 +323,120 @@ export function ProfilePage({
 
       <div className="canvas">
         <section className="profile-masthead">
-          <div>
+          <div className="masthead-portrait">
+            <Avatar
+              src={profile.avatarUrl}
+              name={profile.displayName}
+              size="hero"
+            />
+          </div>
+
+          <div className="masthead-main">
             <h1>{profile.displayName}</h1>
             <p className="profile-handle">@{profile.username}</p>
             {profile.tagline ? (
               <p className="profile-tagline">{profile.tagline}</p>
             ) : null}
-            <p className="profile-meta">
-              Member since {formatDate(profile.createdAt)}
+
+            {profile.profileLink || latest ? (
+              <p className="masthead-status">
+                {profile.profileLink ? (
+                  <a
+                    className="masthead-profile-link"
+                    href={profile.profileLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {displayLink(profile.profileLink)}
+                  </a>
+                ) : null}
+                {latest ? (
+                  <span className="masthead-status-text">
+                    <EmoticonText text={latest.body} />
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
+
+            {latest?.mood || latest?.moodEmoticon ? (
+              <p className="masthead-mood">
+                Mood:{' '}
+                <MoodLine
+                  mood={latest?.mood ?? ''}
+                  moodEmoticon={latest?.moodEmoticon ?? ''}
+                />
+              </p>
+            ) : null}
+
+            {latest ? (
+              <p className="masthead-posted">
+                <time
+                  dateTime={latest.createdAt}
+                  title={formatDateTime(latest.createdAt)}
+                  suppressHydrationWarning
+                >
+                  Posted {formatRelativeTime(latest.createdAt)}
+                </time>
+              </p>
+            ) : null}
+
+            <p className="masthead-viewmy">
+              View My: <a href="#">Music</a>
             </p>
+          </div>
+
+          <div className="masthead-actions">
+            <p className="masthead-url">
+              <img
+                src="/myspace/url.png"
+                alt=""
+                width={28}
+                height={11}
+                className="masthead-url-icon"
+              />
+              <ProfileUrl profile={profile} />
+            </p>
+            <button
+              type="button"
+              className="masthead-action"
+              onClick={() =>
+                setActionNote('Send Message is not available on p0ntus yet.')
+              }
+            >
+              <img src="/myspace/message.png" alt="" width={28} height={13} />
+              <span>Send Message</span>
+            </button>
+            <button
+              type="button"
+              className="masthead-action"
+              onClick={() =>
+                setActionNote('Add to Friends is not available on p0ntus yet.')
+              }
+            >
+              <img src="/myspace/friend.png" alt="" width={28} height={16} />
+              <span>Add to Friends</span>
+            </button>
+            <button
+              type="button"
+              className="masthead-action"
+              onClick={() => {
+                setActionNote('')
+                setCommentOpen(true)
+              }}
+            >
+              <img src="/myspace/comment.png" alt="" width={28} height={13} />
+              <span>Add Comment</span>
+            </button>
+            {actionNote ? (
+              <p className="masthead-action-note" role="status">
+                {actionNote}
+              </p>
+            ) : null}
           </div>
         </section>
 
         <div className="profile-grid">
           <aside className="profile-left">
-            <Panel title={`${profile.displayName}'s portrait`}>
-              <div className="portrait-well">
-                <Avatar
-                  src={profile.avatarUrl}
-                  name={profile.displayName}
-                  size="hero"
-                />
-              </div>
-              <p className="portrait-name">@{profile.username}</p>
-            </Panel>
-
             {contacts.length > 0 ? (
               <Panel
                 title={`Contacting ${profile.displayName}`}
@@ -228,7 +450,7 @@ export function ProfilePage({
               </Panel>
             ) : null}
 
-            <Panel title="Profile details">
+            <Panel title="Details">
               <table className="facts">
                 <tbody>
                   <tr>
@@ -239,20 +461,17 @@ export function ProfilePage({
                     <th scope="row">Member since</th>
                     <td>{formatDate(profile.createdAt)}</td>
                   </tr>
-                  <tr>
-                    <th scope="row">Profile URL</th>
-                    <td>
-                      <Link
-                        to="/u/$username"
-                        params={{ username: profile.username }}
-                      >
-                        /u/{profile.username}
-                      </Link>
-                    </td>
-                  </tr>
+                  {detailRows.map(([label, value]) => (
+                    <tr key={label}>
+                      <th scope="row">{label}</th>
+                      <td>{value}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </Panel>
+
+            <SchoolsCard profile={profile} />
           </aside>
 
           <div className="profile-about">
@@ -291,9 +510,13 @@ export function ProfilePage({
           </div>
 
           <div className="profile-comments">
-            <Panel title="Comments" hint={`Approved only · page ${page}`}>
-              <CommentComposer targetUserId={profile.userId} viewer={viewer} />
+            <StatusCard
+              profile={profile}
+              canAdd={isOwner}
+              onAdd={() => setStatusOpen(true)}
+            />
 
+            <Panel title="Comments" hint={`Approved only · page ${page}`}>
               {pageInvalid ? (
                 <p className="notice" role="status">
                   The page number was invalid. Showing page 1.
@@ -368,7 +591,9 @@ export function ProfilePage({
                                       {formatDateTime(comment.createdAt)}
                                     </span>
                                   </p>
-                                  <p className="comment-text">{comment.body}</p>
+                                  <p className="comment-text">
+                                    <EmoticonText text={comment.body} />
+                                  </p>
                                 </div>
                               </li>
                             ))}
@@ -405,6 +630,16 @@ export function ProfilePage({
           </div>
         </div>
       </div>
+
+      <CommentDialog
+        open={commentOpen}
+        onClose={() => setCommentOpen(false)}
+        targetUserId={profile.userId}
+        viewer={viewer}
+      />
+      {isOwner ? (
+        <StatusDialog open={statusOpen} onClose={() => setStatusOpen(false)} />
+      ) : null}
     </div>
   )
 }

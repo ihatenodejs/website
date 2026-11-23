@@ -5,8 +5,11 @@ import { ADMIN_LOCK_KEY, db } from './db.server'
 import { env } from './env.server'
 import { databaseErrorCode, type ActionResult } from './errors.server'
 import { deleteUploadedAvatar } from './storage.server'
-import { comments, profiles, user } from './schema'
-import { getConnectionSummary, getPublicModelRanking } from './connections.server'
+import { comments, profileSchools, profiles, statusPosts, user } from './schema'
+import {
+  getConnectionSummary,
+  getPublicModelRanking,
+} from './connections.server'
 import { getCurrentUser } from './session.server'
 import { getSiteTheme } from './settings.server'
 import {
@@ -16,11 +19,15 @@ import {
   commentDeleteSchema,
   contactsUpdateSchema,
   escapeLike,
+  profileDetailsUpdateSchema,
+  profileSchoolsUpdateSchema,
   profileUpdateSchema,
+  statusCreateSchema,
   themePreferenceSchema,
 } from '~/lib/validation'
 import type { ContactValues } from '~/lib/contacts'
 import { isTheme, type Theme } from '~/lib/theme'
+import { moodLabelForShortcut } from '~/lib/moods'
 
 export type ProfileModelUsage = {
   model: string
@@ -30,6 +37,38 @@ export type ProfileModelUsage = {
   costMicros: number
 }
 
+export type ProfileDetails = {
+  detailStatus: string
+  hereFor: string
+  hometown: string
+  ethnicity: string
+  zodiac: string
+  smoke: string
+  drink: string
+  education: string
+  occupation: string
+}
+
+export type ProfileSchool = {
+  id: string
+  name: string
+  location: string
+  startYear: number | null
+  endYear: number | null
+  graduatedYear: number | null
+  studentStatus: string
+  major: string
+  clubs: string
+}
+
+export type StatusPost = {
+  id: string
+  body: string
+  mood: string
+  moodEmoticon: string
+  createdAt: string
+}
+
 export type PublicProfile = {
   userId: string
   username: string
@@ -37,6 +76,11 @@ export type PublicProfile = {
   tagline: string
   bio: string
   contacts: ContactValues
+  profileLink: string
+  profileUrl: string
+  details: ProfileDetails
+  schools: ProfileSchool[]
+  statuses: StatusPost[]
   avatarUrl: string | null
   theme: string
   createdAt: string
@@ -66,6 +110,21 @@ function toPublicProfile(row: typeof profiles.$inferSelect): PublicProfile {
       github: row.contactGithub,
       instagram: row.contactInstagram,
     },
+    profileLink: row.profileLink,
+    profileUrl: `${env.APP_ORIGIN}/u/${row.username}`,
+    details: {
+      detailStatus: row.detailStatus,
+      hereFor: row.hereFor,
+      hometown: row.hometown,
+      ethnicity: row.ethnicity,
+      zodiac: row.zodiac,
+      smoke: row.smoke,
+      drink: row.drink,
+      education: row.education,
+      occupation: row.occupation,
+    },
+    schools: [],
+    statuses: [],
     avatarUrl: row.avatarUrl,
     theme: row.theme,
     createdAt: row.createdAt.toISOString(),
@@ -83,6 +142,44 @@ async function findProfile(username: string) {
   return row ?? null
 }
 
+async function getSchools(userId: string): Promise<ProfileSchool[]> {
+  const rows = await db
+    .select({
+      id: profileSchools.id,
+      name: profileSchools.name,
+      location: profileSchools.location,
+      startYear: profileSchools.startYear,
+      endYear: profileSchools.endYear,
+      graduatedYear: profileSchools.graduatedYear,
+      studentStatus: profileSchools.studentStatus,
+      major: profileSchools.major,
+      clubs: profileSchools.clubs,
+    })
+    .from(profileSchools)
+    .where(eq(profileSchools.userId, userId))
+    .orderBy(asc(profileSchools.position), asc(profileSchools.name))
+  return rows
+}
+
+async function getStatuses(userId: string): Promise<StatusPost[]> {
+  const rows = await db
+    .select({
+      id: statusPosts.id,
+      body: statusPosts.body,
+      mood: statusPosts.mood,
+      moodEmoticon: statusPosts.moodEmoticon,
+      createdAt: statusPosts.createdAt,
+    })
+    .from(statusPosts)
+    .where(eq(statusPosts.userId, userId))
+    .orderBy(desc(statusPosts.createdAt))
+    .limit(30)
+  return rows.map((row) => ({
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+  }))
+}
+
 export const getHomeProfileFn = createServerFn({ method: 'GET' }).handler(
   async () => {
     if (!env.HOME_USERNAME) {
@@ -95,11 +192,18 @@ export const getHomeProfileFn = createServerFn({ method: 'GET' }).handler(
 
     const row = await findProfile(env.HOME_USERNAME)
     if (row) {
+      const [modelRanking, schools, statuses] = await Promise.all([
+        getPublicModelRanking(row.userId),
+        getSchools(row.userId),
+        getStatuses(row.userId),
+      ])
       return {
         state: 'ok' as const,
         profile: {
           ...toPublicProfile(row),
-          modelRanking: await getPublicModelRanking(row.userId),
+          modelRanking,
+          schools,
+          statuses,
         },
       }
     }
@@ -118,9 +222,16 @@ export const getProfileFn = createServerFn({ method: 'GET' })
     if (!/^[a-z0-9_]{3,24}$/.test(username)) return null
     const row = await findProfile(username)
     if (!row) return null
+    const [modelRanking, schools, statuses] = await Promise.all([
+      getPublicModelRanking(row.userId),
+      getSchools(row.userId),
+      getStatuses(row.userId),
+    ])
     return {
       ...toPublicProfile(row),
-      modelRanking: await getPublicModelRanking(row.userId),
+      modelRanking,
+      schools,
+      statuses,
     }
   })
 
@@ -330,7 +441,10 @@ export const getAccountDataFn = createServerFn({ method: 'GET' }).handler(
       themePreference: isTheme(current.profile.preferredTheme)
         ? current.profile.preferredTheme
         : null,
-      profile: toPublicProfile(current.profile),
+      profile: {
+        ...toPublicProfile(current.profile),
+        schools: await getSchools(current.id),
+      },
       connections: await getConnectionSummary(current.id),
       comments: rows.map((row) => ({
         ...row,
@@ -437,6 +551,139 @@ export const updateContactsFn = createServerFn({ method: 'POST' })
       }
     },
   )
+
+export const updateDetailsFn = createServerFn({ method: 'POST' })
+  .validator(profileDetailsUpdateSchema)
+  .handler(
+    async ({ data }): Promise<ActionResult<{ profile: PublicProfile }>> => {
+      const current = await getCurrentUser()
+      if (!current?.profile) {
+        return { ok: false, message: 'Sign in to edit your profile.' }
+      }
+
+      try {
+        const [updated] = await db
+          .update(profiles)
+          .set({
+            profileLink:
+              current.role === 'admin'
+                ? data.profileLink
+                : current.profile.profileLink,
+            detailStatus: data.detailStatus,
+            hereFor: data.hereFor,
+            hometown: data.hometown,
+            ethnicity: data.ethnicity,
+            zodiac: data.zodiac,
+            smoke: data.smoke,
+            drink: data.drink,
+            education: data.education,
+            occupation: data.occupation,
+          })
+          .where(eq(profiles.userId, current.id))
+          .returning()
+
+        if (!updated) {
+          return { ok: false, message: 'Your details could not be saved.' }
+        }
+
+        return {
+          ok: true,
+          profile: {
+            ...toPublicProfile(updated),
+            schools: await getSchools(current.id),
+          },
+        }
+      } catch {
+        return {
+          ok: false,
+          message: 'Your details could not be saved. Try again.',
+        }
+      }
+    },
+  )
+
+export const updateSchoolsFn = createServerFn({ method: 'POST' })
+  .validator(profileSchoolsUpdateSchema)
+  .handler(
+    async ({ data }): Promise<ActionResult<{ schools: ProfileSchool[] }>> => {
+      const current = await getCurrentUser()
+      if (!current?.profile) {
+        return { ok: false, message: 'Sign in to edit your profile.' }
+      }
+
+      const schools = data.schools.map((school, position) => ({
+        id: crypto.randomUUID(),
+        userId: current.id,
+        ...school,
+        position,
+      }))
+
+      try {
+        await db.transaction(async (tx) => {
+          await tx
+            .delete(profileSchools)
+            .where(eq(profileSchools.userId, current.id))
+          if (schools.length > 0) {
+            await tx.insert(profileSchools).values(schools)
+          }
+        })
+        return {
+          ok: true,
+          schools: schools.map(
+            ({ userId: _userId, position: _position, ...school }) => school,
+          ),
+        }
+      } catch {
+        return {
+          ok: false,
+          message: 'Your schools could not be saved. Try again.',
+        }
+      }
+    },
+  )
+
+export const createStatusFn = createServerFn({ method: 'POST' })
+  .validator(statusCreateSchema)
+  .handler(async ({ data }): Promise<ActionResult<{ status: StatusPost }>> => {
+    const current = await getCurrentUser()
+    if (!current?.profile) {
+      return { ok: false, message: 'Sign in to post a status.' }
+    }
+
+    try {
+      const mood = data.mood || moodLabelForShortcut(data.moodEmoticon)
+      const [row] = await db
+        .insert(statusPosts)
+        .values({
+          id: crypto.randomUUID(),
+          userId: current.id,
+          body: data.body,
+          mood,
+          moodEmoticon: data.moodEmoticon,
+        })
+        .returning({
+          id: statusPosts.id,
+          body: statusPosts.body,
+          mood: statusPosts.mood,
+          moodEmoticon: statusPosts.moodEmoticon,
+          createdAt: statusPosts.createdAt,
+        })
+
+      if (!row) {
+        return { ok: false, message: 'Your status could not be posted.' }
+      }
+
+      return {
+        ok: true,
+        status: { ...row, createdAt: row.createdAt.toISOString() },
+      }
+    } catch {
+      return {
+        ok: false,
+        message: 'Your status could not be posted. Try again.',
+      }
+    }
+  })
 
 export const updateThemePreferenceFn = createServerFn({ method: 'POST' })
   .validator(themePreferenceSchema)

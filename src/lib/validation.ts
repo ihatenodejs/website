@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { EMOTICON_BY_SHORTCUT } from './emoticons'
 import { THEMES } from './theme'
 
 export const USERNAME_PATTERN = /^[a-z0-9_]{3,24}$/
@@ -154,6 +155,105 @@ export const profileUpdateSchema = z.object({
 
 export const contactsUpdateSchema = z.object({
   contacts: contactValuesSchema,
+})
+
+const detailValueSchema = z
+  .string()
+  .trim()
+  .max(80, 'Use 80 characters or fewer.')
+
+export const profileLinkSchema = z
+  .string()
+  .trim()
+  .max(500, 'Profile link must be 500 characters or fewer.')
+  .refine(
+    (value) => value === '' || /^https:\/\//i.test(value),
+    'Profile link must start with https://',
+  )
+  .refine((value) => {
+    if (value === '') return true
+    try {
+      new URL(value)
+      return true
+    } catch {
+      return false
+    }
+  }, 'Enter a valid URL.')
+
+export const profileDetailsUpdateSchema = z.object({
+  profileLink: profileLinkSchema,
+  detailStatus: detailValueSchema,
+  hereFor: detailValueSchema,
+  hometown: detailValueSchema,
+  ethnicity: detailValueSchema,
+  zodiac: detailValueSchema,
+  smoke: detailValueSchema,
+  drink: detailValueSchema,
+  education: detailValueSchema,
+  occupation: detailValueSchema,
+})
+
+const schoolYearSchema = z
+  .number()
+  .int('Use a whole year.')
+  .min(1900, 'Use a year from 1900 or later.')
+  .max(2100, 'Use a year from 2100 or earlier.')
+  .nullable()
+
+export const profileSchoolSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'School name is required.')
+      .max(120, 'School name must be 120 characters or fewer.'),
+    location: z
+      .string()
+      .trim()
+      .max(120, 'Location must be 120 characters or fewer.'),
+    startYear: schoolYearSchema,
+    endYear: schoolYearSchema,
+    graduatedYear: schoolYearSchema,
+    studentStatus: z
+      .string()
+      .trim()
+      .max(80, 'Student status must be 80 characters or fewer.'),
+    major: z.string().trim().max(120, 'Major must be 120 characters or fewer.'),
+    clubs: z.string().trim().max(120, 'Clubs must be 120 characters or fewer.'),
+  })
+  .refine(
+    (school) =>
+      school.startYear === null ||
+      school.endYear === null ||
+      school.endYear >= school.startYear,
+    {
+      message: 'The end year cannot come before the start year.',
+      path: ['endYear'],
+    },
+  )
+
+export const profileSchoolsUpdateSchema = z.object({
+  schools: z
+    .array(profileSchoolSchema)
+    .max(5, 'Keep up to five schools on your profile.'),
+})
+
+export const statusCreateSchema = z.object({
+  body: z
+    .string()
+    .trim()
+    .min(1, 'Write a status first.')
+    .max(500, 'Status posts are limited to 500 characters.'),
+  mood: z.string().trim().max(60, 'Mood must be 60 characters or fewer.'),
+  moodEmoticon: z
+    .string()
+    .trim()
+    .max(20, 'Mood emoticons are limited to one shortcut.')
+    .default('')
+    .refine(
+      (value) => value === '' || EMOTICON_BY_SHORTCUT.has(value.toLowerCase()),
+      'Choose one emoticon from the list.',
+    ),
 })
 
 export const signupSchema = z.object({
