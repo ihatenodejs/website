@@ -1596,34 +1596,41 @@ a.contact-item:hover {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   grid-template-areas:
-    'profile contact'
-    'profile side';
+    'profile aside'
+    'facts facts';
   gap: 10px;
   align-items: start;
+}
+
+/* One stack per track, so a track never inherits the height of the one beside
+   it and no panel is stranded below a gap. */
+
+.account-profile,
+.account-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .account-profile {
   grid-area: profile;
-  min-width: 0;
 }
 
-.account-contact {
-  grid-area: contact;
-  min-width: 0;
+.account-aside {
+  grid-area: aside;
 }
 
-.account-side {
-  grid-area: side;
-  min-width: 0;
-}
+/* Two tracks hold Details and Schools side by side until the wide layout gives
+   them a track of their own. */
 
-.account-extras {
-  grid-column: 1 / -1;
+.account-facts {
+  grid-area: facts;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   align-items: start;
-  margin-top: 10px;
+  min-width: 0;
 }
 
 .detail-fields {
@@ -2012,12 +2019,11 @@ a.contact-item:hover {
 
   .account-grid {
     grid-template-columns: 360px 340px minmax(0, 1fr);
-    grid-template-areas: 'profile contact side';
+    grid-template-areas: 'profile aside facts';
   }
 
-  .account-grid-profile {
-    grid-template-columns: 360px 340px;
-    grid-template-areas: 'profile contact';
+  .account-facts {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .account-groups {
@@ -2294,23 +2300,16 @@ a.contact-item:hover {
     text-align: left;
   }
 
-  .account-extras {
-    grid-template-columns: 1fr;
-  }
-
   .account-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
       'profile'
-      'contact'
-      'side';
+      'aside'
+      'facts';
   }
 
-  .account-grid-profile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'profile'
-      'contact';
+  .account-facts {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .page-narrow {
