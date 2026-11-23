@@ -1,5 +1,6 @@
 import { Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
+import { EmoticonText } from './EmoticonText'
 import { FormMessage, type FormResult } from './FormMessage'
 import { Panel } from './Panel'
 import { formatDateTime } from '~/lib/format'
@@ -31,7 +32,9 @@ function CommentRow({ comment }: { comment: AccountComment }) {
             {formatDateTime(comment.createdAt)}
           </span>
         </p>
-        <p className="comment-text">{comment.body}</p>
+        <p className="comment-text">
+          <EmoticonText text={comment.body} />
+        </p>
         <p className="comment-target">
           On{' '}
           <Link to="/u/$username" params={{ username: comment.targetUsername }}>
@@ -65,7 +68,11 @@ function CommentRow({ comment }: { comment: AccountComment }) {
   )
 }
 
-export function AccountCommentsTab({ comments }: { comments: AccountComment[] }) {
+export function AccountCommentsTab({
+  comments,
+}: {
+  comments: AccountComment[]
+}) {
   return (
     <Panel title="Your comments" hint={String(comments.length)}>
       {comments.length === 0 ? (

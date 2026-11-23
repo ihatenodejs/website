@@ -125,6 +125,10 @@ The tests truncate tables in that database. Do not point `TEST_DATABASE_URL` at 
 - Profile data, approved comments, and comment timestamps are public. Email addresses and password hashes are never serialized into loader responses.
 - The site color theme is a single site-wide setting in Administration, stored in `site_settings`. Only an administrator can change it, and it applies to signed-out visitors too. A signed-in account can override it for itself in the Color theme panel on `/account`; the choice is stored in `profiles.preferred_theme` and never affects other visitors. Profile themes remain per account.
 
+## Credits
+
+MSN emoticons are from [bernzrdo/msn-emoticons](https://github.com/bernzrdo/msn-emoticons).
+
 ## Design
 
 Read [DESIGN.md](./DESIGN.md) before changing UI. It is the durable authority for palette, type, layout, component states, profile presets, reflow, focus, touch targets, motion, and content rules. The antislop skills in `AGENTS.md` are the filter; the design file is the direction.

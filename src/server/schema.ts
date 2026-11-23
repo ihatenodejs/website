@@ -49,6 +49,16 @@ export const profiles = pgTable(
     displayName: text('display_name').notNull(),
     tagline: text('tagline').default('').notNull(),
     bio: text('bio').default('').notNull(),
+    profileLink: text('profile_link').default('').notNull(),
+    detailStatus: text('detail_status').default('').notNull(),
+    hereFor: text('here_for').default('').notNull(),
+    hometown: text('hometown').default('').notNull(),
+    ethnicity: text('ethnicity').default('').notNull(),
+    zodiac: text('zodiac').default('').notNull(),
+    smoke: text('smoke').default('').notNull(),
+    drink: text('drink').default('').notNull(),
+    education: text('education').default('').notNull(),
+    occupation: text('occupation').default('').notNull(),
     contactDiscord: text('contact_discord').default('').notNull(),
     contactX: text('contact_x').default('').notNull(),
     contactEmail: text('contact_email').default('').notNull(),
@@ -86,6 +96,34 @@ export const profiles = pgTable(
     ),
     check('profiles_bio_length', sql`char_length(${table.bio}) <= 2000`),
     check('profiles_tagline_length', sql`char_length(${table.tagline}) <= 160`),
+    check(
+      'profiles_link_length',
+      sql`char_length(${table.profileLink}) <= 500`,
+    ),
+    check(
+      'profiles_detail_status_length',
+      sql`char_length(${table.detailStatus}) <= 80`,
+    ),
+    check('profiles_here_for_length', sql`char_length(${table.hereFor}) <= 80`),
+    check(
+      'profiles_hometown_length',
+      sql`char_length(${table.hometown}) <= 80`,
+    ),
+    check(
+      'profiles_ethnicity_length',
+      sql`char_length(${table.ethnicity}) <= 80`,
+    ),
+    check('profiles_zodiac_length', sql`char_length(${table.zodiac}) <= 80`),
+    check('profiles_smoke_length', sql`char_length(${table.smoke}) <= 80`),
+    check('profiles_drink_length', sql`char_length(${table.drink}) <= 80`),
+    check(
+      'profiles_education_length',
+      sql`char_length(${table.education}) <= 80`,
+    ),
+    check(
+      'profiles_occupation_length',
+      sql`char_length(${table.occupation}) <= 80`,
+    ),
     check(
       'profiles_contact_discord_length',
       sql`char_length(${table.contactDiscord}) <= 32`,
@@ -148,6 +186,92 @@ export const comments = pgTable(
   ],
 )
 
+export const statusPosts = pgTable(
+  'status_posts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    body: text('body').notNull(),
+    mood: text('mood').default('').notNull(),
+    moodEmoticon: text('mood_emoticon').default('').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index('status_posts_user_created_idx').on(table.userId, table.createdAt),
+    check(
+      'status_posts_body_length',
+      sql`char_length(${table.body}) between 1 and 500`,
+    ),
+    check('status_posts_mood_length', sql`char_length(${table.mood}) <= 60`),
+    check(
+      'status_posts_mood_emoticon_length',
+      sql`char_length(${table.moodEmoticon}) <= 20`,
+    ),
+  ],
+)
+
+export const profileSchools = pgTable(
+  'profile_schools',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    location: text('location').default('').notNull(),
+    startYear: integer('start_year'),
+    endYear: integer('end_year'),
+    graduatedYear: integer('graduated_year'),
+    studentStatus: text('student_status').default('').notNull(),
+    major: text('major').default('').notNull(),
+    clubs: text('clubs').default('').notNull(),
+    position: integer('position').default(0).notNull(),
+  },
+  (table) => [
+    index('profile_schools_user_position_idx').on(table.userId, table.position),
+    check(
+      'profile_schools_name_length',
+      sql`char_length(${table.name}) between 1 and 120`,
+    ),
+    check(
+      'profile_schools_location_length',
+      sql`char_length(${table.location}) <= 120`,
+    ),
+    check(
+      'profile_schools_status_length',
+      sql`char_length(${table.studentStatus}) <= 80`,
+    ),
+    check(
+      'profile_schools_major_length',
+      sql`char_length(${table.major}) <= 120`,
+    ),
+    check(
+      'profile_schools_clubs_length',
+      sql`char_length(${table.clubs}) <= 120`,
+    ),
+    check(
+      'profile_schools_start_year',
+      sql`${table.startYear} is null or ${table.startYear} between 1900 and 2100`,
+    ),
+    check(
+      'profile_schools_end_year',
+      sql`${table.endYear} is null or ${table.endYear} between 1900 and 2100`,
+    ),
+    check(
+      'profile_schools_graduated_year',
+      sql`${table.graduatedYear} is null or ${table.graduatedYear} between 1900 and 2100`,
+    ),
+    check(
+      'profile_schools_year_order',
+      sql`${table.startYear} is null or ${table.endYear} is null or ${table.endYear} >= ${table.startYear}`,
+    ),
+  ],
+)
+
 export const agentUsage = pgTable(
   'agent_usage',
   {
@@ -170,12 +294,7 @@ export const agentUsage = pgTable(
   },
   (table) => [
     primaryKey({
-      columns: [
-        table.userId,
-        table.provider,
-        table.usageDate,
-        table.model,
-      ],
+      columns: [table.userId, table.provider, table.usageDate, table.model],
     }),
     index('agent_usage_user_model_idx').on(table.userId, table.model),
     check(

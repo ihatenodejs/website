@@ -6,7 +6,10 @@ import {
   escapeLike,
   parsePage,
   parseSearchQuery,
+  profileDetailsUpdateSchema,
+  profileSchoolsUpdateSchema,
   profileUpdateSchema,
+  statusCreateSchema,
   usernameSchema,
 } from '../src/lib/validation'
 
@@ -63,6 +66,128 @@ describe('profileUpdateSchema', () => {
     })
     expect(parsed.clearAvatar).toBe(false)
     expect(parsed.username).toBe('mixed_case')
+  })
+})
+
+describe('profileDetailsUpdateSchema', () => {
+  const details = {
+    profileLink: '',
+    detailStatus: '',
+    hereFor: '',
+    hometown: '',
+    ethnicity: '',
+    zodiac: '',
+    smoke: '',
+    drink: '',
+    education: '',
+    occupation: '',
+  }
+
+  it('accepts empty details and an HTTPS profile link', () => {
+    expect(profileDetailsUpdateSchema.parse(details)).toEqual(details)
+    expect(
+      profileDetailsUpdateSchema.parse({
+        ...details,
+        profileLink: 'https://example.com/p0ntus',
+      }).profileLink,
+    ).toBe('https://example.com/p0ntus')
+  })
+
+  it('rejects insecure links and over-long detail values', () => {
+    expect(
+      profileDetailsUpdateSchema.safeParse({
+        ...details,
+        profileLink: 'http://example.com',
+      }).success,
+    ).toBe(false)
+    expect(
+      profileDetailsUpdateSchema.safeParse({
+        ...details,
+        hometown: 'a'.repeat(81),
+      }).success,
+    ).toBe(false)
+  })
+})
+
+describe('profileSchoolsUpdateSchema', () => {
+  const school = {
+    name: 'Example High',
+    location: 'Los Angeles, California',
+    startYear: 1999,
+    endYear: 2003,
+    graduatedYear: 2003,
+    studentStatus: 'Alumni',
+    major: 'Computer science',
+    clubs: 'Chess club',
+  }
+
+  it('accepts up to five schools', () => {
+    expect(
+      profileSchoolsUpdateSchema.parse({
+        schools: Array.from({ length: 5 }, () => school),
+      }).schools,
+    ).toHaveLength(5)
+    expect(
+      profileSchoolsUpdateSchema.safeParse({
+        schools: Array.from({ length: 6 }, () => school),
+      }).success,
+    ).toBe(false)
+  })
+
+  it('rejects a backwards year range and a missing name', () => {
+    expect(
+      profileSchoolsUpdateSchema.safeParse({
+        schools: [{ ...school, endYear: 1990 }],
+      }).success,
+    ).toBe(false)
+    expect(
+      profileSchoolsUpdateSchema.safeParse({
+        schools: [{ ...school, name: '   ' }],
+      }).success,
+    ).toBe(false)
+  })
+})
+
+describe('statusCreateSchema', () => {
+  it('trims a status and keeps one mood emoticon', () => {
+    expect(
+      statusCreateSchema.parse({
+        body: '  Listening to music  ',
+        mood: '  Happy',
+        moodEmoticon: ' (H) ',
+      }),
+    ).toEqual({
+      body: 'Listening to music',
+      mood: 'Happy',
+      moodEmoticon: '(H)',
+    })
+  })
+
+  it('rejects empty statuses and over-long moods', () => {
+    expect(
+      statusCreateSchema.safeParse({ body: '   ', mood: '' }).success,
+    ).toBe(false)
+    expect(
+      statusCreateSchema.safeParse({ body: 'Hello', mood: 'a'.repeat(61) })
+        .success,
+    ).toBe(false)
+  })
+
+  it('rejects unknown or multiple mood emoticons', () => {
+    expect(
+      statusCreateSchema.safeParse({
+        body: 'Hello',
+        mood: '',
+        moodEmoticon: 'not-an-emoticon',
+      }).success,
+    ).toBe(false)
+    expect(
+      statusCreateSchema.safeParse({
+        body: 'Hello',
+        mood: '',
+        moodEmoticon: ':P:)',
+      }).success,
+    ).toBe(false)
   })
 })
 

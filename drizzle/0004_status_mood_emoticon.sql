@@ -1,0 +1,2 @@
+ALTER TABLE "status_posts" ADD COLUMN "mood_emoticon" text DEFAULT '' NOT NULL;--> statement-breakpoint
+ALTER TABLE "status_posts" ADD CONSTRAINT "status_posts_mood_emoticon_length" CHECK (char_length("status_posts"."mood_emoticon") <= 20);

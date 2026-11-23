@@ -1,5 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
+import { AccountDetailsPanel } from './AccountDetailsPanel'
+import { AccountSchoolsPanel } from './AccountSchoolsPanel'
 import { Avatar } from './Avatar'
 import { FormMessage, type FormResult } from './FormMessage'
 import { Panel } from './Panel'
@@ -46,7 +48,7 @@ export function AccountProfileTab({
   const homeProtected = profile.isHome
 
   return (
-    <div className={`account-grid${isAdmin ? '' : ' account-grid-profile'}`}>
+    <div className="account-grid">
       <div className="account-profile">
         <Panel
           title="Public profile"
@@ -226,7 +228,7 @@ export function AccountProfileTab({
         </Panel>
       </div>
 
-      <div className="account-contact">
+      <div className="account-aside">
         <Panel title="Contact methods" hint="Optional">
           <form
             className="stack-form"
@@ -277,10 +279,7 @@ export function AccountProfileTab({
           </form>
         </Panel>
 
-      </div>
-
-      {isAdmin ? (
-        <div className="account-side">
+        {isAdmin ? (
           <Panel title="Avatar upload" hint="Administrators only">
             <form
               className="stack-form"
@@ -340,8 +339,13 @@ export function AccountProfileTab({
               <FormMessage result={uploadResult} />
             </form>
           </Panel>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
+
+      <div className="account-facts">
+        <AccountDetailsPanel profile={profile} isAdmin={isAdmin} />
+        <AccountSchoolsPanel profile={profile} />
+      </div>
     </div>
   )
 }

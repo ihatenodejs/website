@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ConfirmDelete } from '~/components/ConfirmDelete'
+import { EmoticonText } from '~/components/EmoticonText'
 import { FormMessage, type FormResult } from '~/components/FormMessage'
 import { Panel } from '~/components/Panel'
 import { formatDateTime } from '~/lib/format'
@@ -425,7 +426,9 @@ function AdminRoute() {
                       {formatDateTime(comment.createdAt)}
                     </span>
                   </p>
-                  <p className="comment-text">{comment.body}</p>
+                  <p className="comment-text">
+                    <EmoticonText text={comment.body} />
+                  </p>
                   <CommentControls
                     commentId={comment.id}
                     status={

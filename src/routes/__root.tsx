@@ -8,7 +8,6 @@ import {
 import type { ReactNode } from 'react'
 import { Breadcrumbs } from '~/components/Breadcrumbs'
 import { Panel } from '~/components/Panel'
-import { SiteFooter } from '~/components/SiteFooter'
 import { SiteHeader } from '~/components/SiteHeader'
 import appCss from '~/styles/app.css?url'
 import { getSessionSummaryFn } from '~/server/auth.functions'
@@ -72,7 +71,6 @@ function RootLayout() {
       <main id="main">
         <Outlet />
       </main>
-      <SiteFooter />
     </>
   )
 }
@@ -94,7 +92,6 @@ function LoadingPage() {
           </p>
         </div>
       </main>
-      <SiteFooter />
     </>
   )
 }
@@ -143,7 +140,6 @@ function RootError({ reset }: { reset: () => void }) {
           </Panel>
         </div>
       </main>
-      <SiteFooter />
     </>
   )
 }

@@ -13,9 +13,11 @@ import {
   modelGroupMembers,
   modelGroups,
   modelOverrides,
+  profileSchools,
   profiles,
   session,
   siteSettings,
+  statusPosts,
   user,
 } from '../src/server/schema'
 
@@ -46,7 +48,7 @@ suite('PostgreSQL persistence rules', () => {
 
   beforeEach(async () => {
     await pool.query(
-      'TRUNCATE agent_connections, agent_sync_runs, agent_usage, model_group_members, model_groups, model_overrides, app_state, comments, profiles, session, site_settings, account, verification, "user" CASCADE',
+      'TRUNCATE agent_connections, agent_sync_runs, agent_usage, model_group_members, model_groups, model_overrides, app_state, profile_schools, status_posts, comments, profiles, session, site_settings, account, verification, "user" CASCADE',
     )
   })
 
@@ -127,6 +129,13 @@ suite('PostgreSQL persistence rules', () => {
       .catch((error) => error)
     expect(errorCode(github)).toBe('23514')
 
+    const profileLink = await db
+      .update(profiles)
+      .set({ profileLink: 'a'.repeat(501) })
+      .where(eq(profiles.userId, id))
+      .catch((error) => error)
+    expect(errorCode(profileLink)).toBe('23514')
+
     const author = await createUser('author', 'author_user')
     const tooLong = await db
       .insert(comments)
@@ -155,6 +164,89 @@ suite('PostgreSQL persistence rules', () => {
 
     await db.delete(user).where(eq(user.id, author))
     expect(await db.select().from(comments)).toHaveLength(0)
+  })
+
+  it('enforces status body and mood lengths in SQL', async () => {
+    const id = await createUser('status', 'status_user')
+
+    const empty = await db
+      .insert(statusPosts)
+      .values({ id: randomUUID(), userId: id, body: '' })
+      .catch((error) => error)
+    expect(errorCode(empty)).toBe('23514')
+
+    const tooLong = await db
+      .insert(statusPosts)
+      .values({ id: randomUUID(), userId: id, body: 'a'.repeat(501) })
+      .catch((error) => error)
+    expect(errorCode(tooLong)).toBe('23514')
+
+    const longMood = await db
+      .insert(statusPosts)
+      .values({
+        id: randomUUID(),
+        userId: id,
+        body: 'Listening to music',
+        mood: 'a'.repeat(61),
+      })
+      .catch((error) => error)
+    expect(errorCode(longMood)).toBe('23514')
+
+    const longMoodEmoticon = await db
+      .insert(statusPosts)
+      .values({
+        id: randomUUID(),
+        userId: id,
+        body: 'Listening to music',
+        moodEmoticon: 'a'.repeat(21),
+      })
+      .catch((error) => error)
+    expect(errorCode(longMoodEmoticon)).toBe('23514')
+  })
+
+  it('enforces school year order and lengths, and cascades with the account', async () => {
+    const id = await createUser('school', 'school_user')
+
+    const backwards = await db
+      .insert(profileSchools)
+      .values({
+        id: randomUUID(),
+        userId: id,
+        name: 'Example High',
+        startYear: 2010,
+        endYear: 2000,
+      })
+      .catch((error) => error)
+    expect(errorCode(backwards)).toBe('23514')
+
+    const early = await db
+      .insert(profileSchools)
+      .values({
+        id: randomUUID(),
+        userId: id,
+        name: 'Example High',
+        startYear: 1800,
+      })
+      .catch((error) => error)
+    expect(errorCode(early)).toBe('23514')
+
+    await db.insert(profileSchools).values({
+      id: randomUUID(),
+      userId: id,
+      name: 'Example High',
+      startYear: 1999,
+      endYear: 2003,
+      graduatedYear: 2003,
+    })
+    await db.insert(statusPosts).values({
+      id: randomUUID(),
+      userId: id,
+      body: 'School is out',
+    })
+
+    await db.delete(user).where(eq(user.id, id))
+    expect(await db.select().from(profileSchools)).toHaveLength(0)
+    expect(await db.select().from(statusPosts)).toHaveLength(0)
   })
 
   it('cascades profiles and sessions with the auth user', async () => {

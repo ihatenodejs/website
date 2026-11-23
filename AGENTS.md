@@ -51,7 +51,7 @@ flowchart LR
 | `src/routes/` | File routes, flat children of root (`/`, `/account`, `/admin`, `/members`, `/setup`, `/u/$username`, `api/*`) |
 | `src/server/` | Server functions (`*.functions.ts`), server-only modules (`*.server.ts`), Drizzle schema, better-auth config |
 | `src/lib/` | Isomorphic helpers: all zod schemas in `validation.ts`, `runAction`, theme constants, contact metadata, Intl formatters |
-| `src/components/` | Shared primitives (`Panel`, `FormMessage`, `ConfirmDelete`, `Breadcrumbs`, `Avatar`, `Turnstile`), chrome (`SiteHeader`, `SiteFooter`), `ProfilePage` |
+|`src/components/`|Shared primitives (`Panel`, `FormMessage`, `ConfirmDelete`, `Breadcrumbs`, `Avatar`, `Turnstile`), chrome (`SiteHeader`), `ProfilePage`|
 | `src/styles/app.css` | The single global stylesheet (~1600 lines, no Tailwind, no CSS modules) |
 | `drizzle/` | Committed generated SQL migrations; `drizzle-kit generate` writes here |
 | `tests/` | Vitest suites (see Testing & QA) |
