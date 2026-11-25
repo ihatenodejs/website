@@ -16,12 +16,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "1.7.25",
-    "@lobehub/icons": "6.18.0",
-    "@lobehub/ui": "6.16.3",
+    "@better-auth/drizzle-adapter": "1.7.27",
+    "@lobehub/icons": "6.19.0",
+    "@lobehub/ui": "6.18.0",
     "@tanstack/react-router": "1.170.46",
-    "@tanstack/react-start": "1.169.5",
-    "better-auth": "1.7.25",
+    "@tanstack/react-start": "1.169.7",
+    "better-auth": "1.7.27",
     "drizzle-orm": "0.45.4",
     "lucide-react": "1.77.0",
     "pg": "8.23.1",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@tanstack/router-plugin": "1.169.0",
-    "@types/bun": "^1.4.4",
+    "@types/bun": "^1.4.5",
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -42,6 +42,6 @@
     "prettier": "3.10.1",
     "typescript": "7.0.2",
     "vite": "8.3.8",
-    "vitest": "5.1.0"
+    "vitest": "5.1.1"
   }
 }
